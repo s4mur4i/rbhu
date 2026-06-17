@@ -261,9 +261,10 @@ type AccountIn struct {
 
 type RawOut struct {
 	AccountID string `json:"account_id"`
-	// Data is the raw API payload. Typed as any so the generated MCP output
-	// schema is permissive (the live payloads are richer than the spec).
-	Data any `json:"data"`
+	// Data is the raw API payload as a JSON object. Typed as map[string]any so
+	// the generated MCP output schema is a valid object schema (the live
+	// payloads are richer than the OpenAPI spec).
+	Data map[string]any `json:"data"`
 }
 
 func (cn *conn) getBalances(ctx context.Context, _ *mcp.CallToolRequest, in AccountIn) (*mcp.CallToolResult, RawOut, error) {
@@ -271,7 +272,7 @@ func (cn *conn) getBalances(ctx context.Context, _ *mcp.CallToolRequest, in Acco
 	if err != nil {
 		return errResult(err), RawOut{}, nil
 	}
-	return nil, RawOut{AccountID: in.AccountID, Data: jsonToAny(raw)}, nil
+	return nil, RawOut{AccountID: in.AccountID, Data: jsonToObject(raw)}, nil
 }
 
 // ---- get_transactions ----
@@ -287,14 +288,14 @@ func (cn *conn) getTransactions(ctx context.Context, _ *mcp.CallToolRequest, in 
 	if err != nil {
 		return errResult(err), RawOut{}, nil
 	}
-	return nil, RawOut{AccountID: in.AccountID, Data: jsonToAny(raw)}, nil
+	return nil, RawOut{AccountID: in.AccountID, Data: jsonToObject(raw)}, nil
 }
 
-// jsonToAny decodes raw JSON into an any value for permissive MCP output.
-func jsonToAny(raw []byte) any {
-	var v any
+// jsonToObject decodes a raw JSON object into a map for MCP structured output.
+func jsonToObject(raw []byte) map[string]any {
+	var v map[string]any
 	if err := json.Unmarshal(raw, &v); err != nil {
-		return string(raw)
+		return map[string]any{"raw": string(raw)}
 	}
 	return v
 }
