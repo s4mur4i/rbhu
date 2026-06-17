@@ -86,15 +86,26 @@ bearer `Authorization`, the marketplace `client_id` (key-auth),
 `Accept: application/json`, a non-default `User-Agent` (the default Go one is
 WAF-blocked), `X-Request-ID` and `Date`.
 
+## Claude connector (read-only)
+
+An MCP connector exposes the AIS read-only APIs to Claude, over stdio (local,
+Claude Desktop / Claude Code) and Streamable HTTP (remote, claude.ai custom
+connector). Tools: `create_consent`, `submit_authorization_code`,
+`authorize_in_browser`, `list_accounts`, `get_balances`, `get_transactions`
+(scope `AISP` only — no write operations). Build with `make connectors`; see
+[docs/connector.md](docs/connector.md) for setup.
+
 ## Repository layout
 
 ```
 *.go            rbhu package: client, config, oauth, errors, helpers, services
 psd2/           generated typed clients, one package per OpenAPI spec
+connector/      MCP connector for Claude (AIS read-only tools)
+cmd/            connector binaries (stdio + Streamable HTTP)
 specs/          OpenAPI specifications (source of truth for codegen)
 scripts/        codegen driver + spec sanitizer
 examples/       runnable examples (ais, sca)
-docs/           API inventory and notes
+docs/           API inventory, connector guide, notes
 secrets/        credentials + certificate (git-ignored, not committed)
 ```
 

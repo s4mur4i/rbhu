@@ -1,4 +1,4 @@
-.PHONY: all tools generate build test vet integration tidy clean
+.PHONY: all tools generate build test vet integration tidy clean connectors
 
 OAPI_VERSION ?= latest
 
@@ -14,6 +14,11 @@ generate:
 
 build:
 	go build ./...
+
+# Build the connector binaries into ./bin
+connectors:
+	go build -o bin/rbhu-connector ./cmd/rbhu-connector
+	go build -o bin/rbhu-connector-http ./cmd/rbhu-connector-http
 
 vet:
 	go vet ./...
