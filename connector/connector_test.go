@@ -37,7 +37,7 @@ func connect(t *testing.T, srv *httptest.Server) *mcp.ClientSession {
 		rbhu.WithEnvironment(rbhu.Environment{APIBase: srv.URL, BridgeBase: srv.URL}),
 		rbhu.WithHTTPClient(srv.Client()),
 	)
-	server := New(client)
+	server := New(client, WithBrowserAuth())
 
 	st, ct := mcp.NewInMemoryTransports()
 	if _, err := server.Connect(context.Background(), st, nil); err != nil {
@@ -106,12 +106,26 @@ func TestConnectorFlow(t *testing.T) {
 	call(t, cs, "create_consent", map[string]any{
 		"ibans": []string{"HU19120010080010059400100008"}, "psu_id": "82742150",
 	}, &consent)
-	if consent.ConsentID != "c-1" || consent.AuthorizeURL == "" {
+	if consent.ConsentID != "c-1" || consent.AuthorizeURL == "" || consent.State == "" {
 		t.Fatalf("create_consent out = %+v", consent)
 	}
 
+	// Wrong state must be rejected (CSRF protection).
+	resBad, err := cs.CallTool(context.Background(), &mcp.CallToolParams{
+		Name:      "submit_authorization_code",
+		Arguments: map[string]any{"consent_id": "c-1", "code": "the-code", "state": "wrong"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !resBad.IsError {
+		t.Fatal("expected state-mismatch error")
+	}
+
 	var auth AuthOut
-	call(t, cs, "submit_authorization_code", map[string]any{"code": "the-code"}, &auth)
+	call(t, cs, "submit_authorization_code", map[string]any{
+		"consent_id": "c-1", "code": "the-code", "state": consent.State,
+	}, &auth)
 	if auth.Status != "authorized" {
 		t.Fatalf("auth out = %+v", auth)
 	}

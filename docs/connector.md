@@ -54,8 +54,10 @@ Typical flow in chat:
 1. "Create a consent for IBAN HU19120010080010059400100008, PSU 82742150."
    → `create_consent` returns an `authorize_url`.
 2. Open the URL, complete SCA (sandbox login is PSU-ID only), approve.
-   Copy the `code` from the redirect URL.
-3. "Submit code <code>." → `submit_authorization_code`.
+   Copy the `code` **and** `state` from the redirect URL.
+3. "Submit code <code> state <state> for consent <consent_id>."
+   → `submit_authorization_code` (the state must match the one create_consent
+   issued — CSRF protection).
 4. "List my accounts / show savings balance / show transactions."
 
 (`authorize_in_browser` automates steps 2–3 when the app's redirect URI points
@@ -64,12 +66,20 @@ at a local callback such as `http://127.0.0.1:8089/callback`.)
 ## Web setup (claude.ai custom connector)
 
 ```sh
-RBHU_CONNECTOR_ADDR=:8080 ./bin/rbhu-connector-http   # MCP at /mcp
+RBHU_CONNECTOR_TOKEN=$(openssl rand -hex 32) \
+RBHU_CONNECTOR_ADDR=127.0.0.1:8080 ./bin/rbhu-connector-http   # MCP at /mcp
 ```
+
+The endpoint **requires a bearer token** (`RBHU_CONNECTOR_TOKEN`); the server
+refuses to start without one and returns 401 for requests missing
+`Authorization: Bearer <token>`. It binds to loopback by default. The
+`authorize_in_browser` tool is **not** exposed over HTTP (browser SCA is local
+only); use `create_consent` + `submit_authorization_code` instead.
 
 Expose it over HTTPS (for local testing, a tunnel like `cloudflared` or
 `ngrok`), then in **claude.ai → Settings → Connectors → Add custom connector**
-enter the MCP URL, e.g. `https://<tunnel-host>/mcp`. The same tools appear.
+enter the MCP URL, e.g. `https://<tunnel-host>/mcp`, and configure the same
+bearer token. The read tools appear.
 
 ### Dev vs production
 

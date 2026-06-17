@@ -10,9 +10,15 @@ package connector
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/subtle"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
+	"net"
 	"os/exec"
 	"runtime"
+	"sync"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/s4mur4i/rbhu"
@@ -22,10 +28,35 @@ import (
 // Version is the connector's reported version.
 const Version = "0.1.0"
 
+// Option configures the connector.
+type Option func(*config)
+
+type config struct {
+	browserAuth bool
+}
+
+// WithBrowserAuth registers the authorize_in_browser tool, which opens a local
+// browser and runs a local callback server. Enable it ONLY for local (stdio)
+// transports — never on a remote HTTP server, where it would let remote callers
+// trigger server-side browser launches and local port binds.
+func WithBrowserAuth() Option { return func(c *config) { c.browserAuth = true } }
+
+// conn holds the per-connector state shared across tool handlers.
+type conn struct {
+	c      *rbhu.Client
+	mu     sync.Mutex
+	states map[string]string // consentID -> issued OAuth state (CSRF token)
+}
+
 // New builds an MCP server exposing the AIS read-only tools, backed by the
-// given RBHU client. The client holds the per-session OAuth token, set by the
-// authorize/exchange tools.
-func New(c *rbhu.Client) *mcp.Server {
+// given RBHU client.
+func New(c *rbhu.Client, opts ...Option) *mcp.Server {
+	var cfg config
+	for _, o := range opts {
+		o(&cfg)
+	}
+	cn := &conn{c: c, states: make(map[string]string)}
+
 	s := mcp.NewServer(&mcp.Implementation{
 		Name:    "rbhu-ais",
 		Title:   "Raiffeisen Hungary (AIS, read-only)",
@@ -35,40 +66,48 @@ func New(c *rbhu.Client) *mcp.Server {
 	mcp.AddTool(s, &mcp.Tool{
 		Name:        "create_consent",
 		Title:       "Create account-information consent",
-		Description: "Create a read-only AIS consent for one or more IBANs and return the consent id plus the URL the customer must open to authorize it (SCA). Does not move money.",
-	}, createConsent(c))
+		Description: "Create a read-only AIS consent for one or more IBANs and return the consent id, an SCA authorize URL and the state value to echo back. Does not move money.",
+	}, cn.createConsent)
 
 	mcp.AddTool(s, &mcp.Tool{
 		Name:        "submit_authorization_code",
 		Title:       "Submit SCA authorization code",
-		Description: "Exchange the authorization code (from the redirect URL after the customer approves SCA) for an access token. Call this after create_consent and the customer has authorized.",
-	}, submitCode(c))
-
-	mcp.AddTool(s, &mcp.Tool{
-		Name:        "authorize_in_browser",
-		Title:       "Authorize via local browser (local setup only)",
-		Description: "Open the SCA URL in a local browser and automatically capture the authorization code on a local callback server. Only works when the connector runs locally and the app's redirect URI points at the local callback address.",
-	}, authorizeBrowser(c))
+		Description: "Exchange the authorization code from the SCA redirect for an access token. Provide the consent_id, the code, and the state, both taken from the redirect URL.",
+	}, cn.submitCode)
 
 	mcp.AddTool(s, &mcp.Tool{
 		Name:        "list_accounts",
 		Title:       "List accounts",
 		Description: "List the accounts (current and savings) covered by an authorized consent. Requires a prior authorization.",
-	}, listAccounts(c))
+	}, cn.listAccounts)
 
 	mcp.AddTool(s, &mcp.Tool{
 		Name:        "get_balances",
 		Title:       "Get account balances",
 		Description: "Get the balances of one account under an authorized consent.",
-	}, getBalances(c))
+	}, cn.getBalances)
 
 	mcp.AddTool(s, &mcp.Tool{
 		Name:        "get_transactions",
 		Title:       "Get account transactions",
 		Description: "Get the transactions of one account under an authorized consent. bookingStatus is booked, pending or both (default booked).",
-	}, getTransactions(c))
+	}, cn.getTransactions)
+
+	if cfg.browserAuth {
+		mcp.AddTool(s, &mcp.Tool{
+			Name:        "authorize_in_browser",
+			Title:       "Authorize via local browser (local setup only)",
+			Description: "Open the SCA URL in a local browser and automatically capture the authorization code on a loopback callback server. Local setup only.",
+		}, cn.authorizeBrowser)
+	}
 
 	return s
+}
+
+func newState() string {
+	b := make([]byte, 16)
+	_, _ = rand.Read(b)
+	return hex.EncodeToString(b)
 }
 
 // ---- create_consent ----
@@ -82,28 +121,35 @@ type CreateConsentOut struct {
 	ConsentID    string `json:"consent_id"`
 	Status       string `json:"status"`
 	AuthorizeURL string `json:"authorize_url"`
+	State        string `json:"state"`
 }
 
-func createConsent(c *rbhu.Client) mcp.ToolHandlerFor[CreateConsentIn, CreateConsentOut] {
-	return func(ctx context.Context, _ *mcp.CallToolRequest, in CreateConsentIn) (*mcp.CallToolResult, CreateConsentOut, error) {
-		consent, err := c.CreateAISConsent(ctx, rbhu.AISConsentParams{
-			IBANs: in.IBANs, PSUID: in.PSUID, Recurring: true,
-		})
-		if err != nil {
-			return errResult(err), CreateConsentOut{}, nil
-		}
-		return nil, CreateConsentOut{
-			ConsentID:    consent.ID,
-			Status:       consent.Status,
-			AuthorizeURL: c.AuthorizeURL(rbhu.ScopeAISP, consent.ID, ""),
-		}, nil
+func (cn *conn) createConsent(ctx context.Context, _ *mcp.CallToolRequest, in CreateConsentIn) (*mcp.CallToolResult, CreateConsentOut, error) {
+	consent, err := cn.c.CreateAISConsent(ctx, rbhu.AISConsentParams{
+		IBANs: in.IBANs, PSUID: in.PSUID, Recurring: true,
+	})
+	if err != nil {
+		return errResult(err), CreateConsentOut{}, nil
 	}
+	state := newState()
+	cn.mu.Lock()
+	cn.states[consent.ID] = state
+	cn.mu.Unlock()
+
+	return nil, CreateConsentOut{
+		ConsentID:    consent.ID,
+		Status:       consent.Status,
+		AuthorizeURL: cn.c.AuthorizeURL(rbhu.ScopeAISP, consent.ID, state),
+		State:        state,
+	}, nil
 }
 
 // ---- submit_authorization_code ----
 
 type SubmitCodeIn struct {
-	Code string `json:"code" jsonschema:"the authorization code from the redirect URL after SCA"`
+	ConsentID string `json:"consent_id" jsonschema:"the consent id from create_consent"`
+	Code      string `json:"code" jsonschema:"the authorization code from the redirect URL after SCA"`
+	State     string `json:"state" jsonschema:"the state value from the redirect URL; must match the one issued by create_consent"`
 }
 
 type AuthOut struct {
@@ -111,35 +157,59 @@ type AuthOut struct {
 	ExpiresIn int    `json:"expires_in_seconds"`
 }
 
-func submitCode(c *rbhu.Client) mcp.ToolHandlerFor[SubmitCodeIn, AuthOut] {
-	return func(ctx context.Context, _ *mcp.CallToolRequest, in SubmitCodeIn) (*mcp.CallToolResult, AuthOut, error) {
-		tok, err := c.ExchangeToken(ctx, rbhu.ScopeAISP, in.Code)
-		if err != nil {
-			return errResult(err), AuthOut{}, nil
-		}
-		return nil, AuthOut{Status: "authorized", ExpiresIn: tok.ExpiresIn}, nil
+func (cn *conn) submitCode(ctx context.Context, _ *mcp.CallToolRequest, in SubmitCodeIn) (*mcp.CallToolResult, AuthOut, error) {
+	cn.mu.Lock()
+	want, ok := cn.states[in.ConsentID]
+	cn.mu.Unlock()
+	if !ok || in.State == "" || subtle.ConstantTimeCompare([]byte(want), []byte(in.State)) != 1 {
+		return errResult(fmt.Errorf("state mismatch or unknown consent_id (possible CSRF); call create_consent first and echo back its state")), AuthOut{}, nil
 	}
+
+	tok, err := cn.c.ExchangeToken(ctx, rbhu.ScopeAISP, in.Code)
+	if err != nil {
+		return errResult(err), AuthOut{}, nil
+	}
+	cn.mu.Lock()
+	delete(cn.states, in.ConsentID)
+	cn.mu.Unlock()
+	return nil, AuthOut{Status: "authorized", ExpiresIn: tok.ExpiresIn}, nil
 }
 
-// ---- authorize_in_browser ----
+// ---- authorize_in_browser (local only) ----
 
 type AuthorizeBrowserIn struct {
 	ConsentID    string `json:"consent_id"`
-	CallbackAddr string `json:"callback_addr" jsonschema:"local host:port the redirect is captured on (default 127.0.0.1:8089)"`
+	CallbackAddr string `json:"callback_addr" jsonschema:"loopback host:port the redirect is captured on (default 127.0.0.1:8089)"`
 }
 
-func authorizeBrowser(c *rbhu.Client) mcp.ToolHandlerFor[AuthorizeBrowserIn, AuthOut] {
-	return func(ctx context.Context, _ *mcp.CallToolRequest, in AuthorizeBrowserIn) (*mcp.CallToolResult, AuthOut, error) {
-		addr := in.CallbackAddr
-		if addr == "" {
-			addr = "127.0.0.1:8089"
-		}
-		tok, err := c.CompleteAuthorization(ctx, rbhu.ScopeAISP, in.ConsentID, addr, openBrowser)
-		if err != nil {
-			return errResult(err), AuthOut{}, nil
-		}
-		return nil, AuthOut{Status: "authorized", ExpiresIn: tok.ExpiresIn}, nil
+func (cn *conn) authorizeBrowser(ctx context.Context, _ *mcp.CallToolRequest, in AuthorizeBrowserIn) (*mcp.CallToolResult, AuthOut, error) {
+	addr := in.CallbackAddr
+	if addr == "" {
+		addr = "127.0.0.1:8089"
 	}
+	if err := requireLoopback(addr); err != nil {
+		return errResult(err), AuthOut{}, nil
+	}
+	tok, err := cn.c.CompleteAuthorization(ctx, rbhu.ScopeAISP, in.ConsentID, addr, openBrowser)
+	if err != nil {
+		return errResult(err), AuthOut{}, nil
+	}
+	return nil, AuthOut{Status: "authorized", ExpiresIn: tok.ExpiresIn}, nil
+}
+
+func requireLoopback(addr string) error {
+	host, _, err := net.SplitHostPort(addr)
+	if err != nil {
+		return fmt.Errorf("invalid callback_addr %q: %w", addr, err)
+	}
+	switch host {
+	case "127.0.0.1", "::1", "localhost", "":
+		return nil
+	}
+	if ip := net.ParseIP(host); ip != nil && ip.IsLoopback() {
+		return nil
+	}
+	return fmt.Errorf("callback_addr must be a loopback address, got %q", host)
 }
 
 // ---- list_accounts ----
@@ -162,26 +232,24 @@ type ListAccountsOut struct {
 	Accounts []AccountSummary `json:"accounts"`
 }
 
-func listAccounts(c *rbhu.Client) mcp.ToolHandlerFor[ConsentIn, ListAccountsOut] {
-	return func(ctx context.Context, _ *mcp.CallToolRequest, in ConsentIn) (*mcp.CallToolResult, ListAccountsOut, error) {
-		accs, err := c.ListAccounts(ctx, in.ConsentID)
-		if err != nil {
-			return errResult(err), ListAccountsOut{}, nil
-		}
-		out := ListAccountsOut{Accounts: make([]AccountSummary, 0, len(accs))}
-		for _, a := range accs {
-			out.Accounts = append(out.Accounts, AccountSummary{
-				ResourceID:      a.ResourceId,
-				IBAN:            deref(a.Iban),
-				Currency:        a.Currency,
-				Name:            deref(a.Name),
-				OwnerName:       derefOwner(a.OwnerName),
-				Product:         deref(a.Product),
-				CashAccountType: cashType(a.CashAccountType),
-			})
-		}
-		return nil, out, nil
+func (cn *conn) listAccounts(ctx context.Context, _ *mcp.CallToolRequest, in ConsentIn) (*mcp.CallToolResult, ListAccountsOut, error) {
+	accs, err := cn.c.ListAccounts(ctx, in.ConsentID)
+	if err != nil {
+		return errResult(err), ListAccountsOut{}, nil
 	}
+	out := ListAccountsOut{Accounts: make([]AccountSummary, 0, len(accs))}
+	for _, a := range accs {
+		out.Accounts = append(out.Accounts, AccountSummary{
+			ResourceID:      a.ResourceId,
+			IBAN:            deref(a.Iban),
+			Currency:        a.Currency,
+			Name:            deref(a.Name),
+			OwnerName:       derefOwner(a.OwnerName),
+			Product:         deref(a.Product),
+			CashAccountType: cashType(a.CashAccountType),
+		})
+	}
+	return nil, out, nil
 }
 
 // ---- get_balances ----
@@ -196,15 +264,13 @@ type RawOut struct {
 	Data      json.RawMessage `json:"data"`
 }
 
-func getBalances(c *rbhu.Client) mcp.ToolHandlerFor[AccountIn, RawOut] {
-	return func(ctx context.Context, _ *mcp.CallToolRequest, in AccountIn) (*mcp.CallToolResult, RawOut, error) {
-		bal, err := c.Balances(ctx, in.ConsentID, in.AccountID)
-		if err != nil {
-			return errResult(err), RawOut{}, nil
-		}
-		data, _ := json.Marshal(bal)
-		return nil, RawOut{AccountID: in.AccountID, Data: data}, nil
+func (cn *conn) getBalances(ctx context.Context, _ *mcp.CallToolRequest, in AccountIn) (*mcp.CallToolResult, RawOut, error) {
+	bal, err := cn.c.Balances(ctx, in.ConsentID, in.AccountID)
+	if err != nil {
+		return errResult(err), RawOut{}, nil
 	}
+	data, _ := json.Marshal(bal)
+	return nil, RawOut{AccountID: in.AccountID, Data: data}, nil
 }
 
 // ---- get_transactions ----
@@ -215,15 +281,13 @@ type TransactionsIn struct {
 	BookingStatus string `json:"booking_status" jsonschema:"booked, pending or both (default booked)"`
 }
 
-func getTransactions(c *rbhu.Client) mcp.ToolHandlerFor[TransactionsIn, RawOut] {
-	return func(ctx context.Context, _ *mcp.CallToolRequest, in TransactionsIn) (*mcp.CallToolResult, RawOut, error) {
-		tx, err := c.Transactions(ctx, in.ConsentID, in.AccountID, in.BookingStatus)
-		if err != nil {
-			return errResult(err), RawOut{}, nil
-		}
-		data, _ := json.Marshal(tx)
-		return nil, RawOut{AccountID: in.AccountID, Data: data}, nil
+func (cn *conn) getTransactions(ctx context.Context, _ *mcp.CallToolRequest, in TransactionsIn) (*mcp.CallToolResult, RawOut, error) {
+	tx, err := cn.c.Transactions(ctx, in.ConsentID, in.AccountID, in.BookingStatus)
+	if err != nil {
+		return errResult(err), RawOut{}, nil
 	}
+	data, _ := json.Marshal(tx)
+	return nil, RawOut{AccountID: in.AccountID, Data: data}, nil
 }
 
 // ---- helpers ----

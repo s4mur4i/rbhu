@@ -277,7 +277,8 @@ func (c *Client) CompleteAuthorization(ctx context.Context, scope Scope, consent
 	}
 	defer cl.Close()
 
-	authURL := c.AuthorizeURL(scope, consentID, uuid.NewString())
+	state := uuid.NewString()
+	authURL := c.AuthorizeURL(scope, consentID, state)
 	if open != nil {
 		open(authURL)
 	}
@@ -285,6 +286,9 @@ func (c *Client) CompleteAuthorization(ctx context.Context, scope Scope, consent
 	res, err := cl.Wait(ctx)
 	if err != nil {
 		return nil, err
+	}
+	if res.State != state {
+		return nil, fmt.Errorf("rbhu: state mismatch on authorization callback (possible CSRF)")
 	}
 	return c.ExchangeToken(ctx, scope, res.Code)
 }

@@ -30,7 +30,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("rbhu-connector: %v", err)
 	}
-	srv := connector.New(client)
+	// Local transport: browser-based SCA is safe here.
+	srv := connector.New(client, connector.WithBrowserAuth())
 	if err := srv.Run(context.Background(), &mcp.StdioTransport{}); err != nil {
 		log.Fatalf("rbhu-connector: %v", err)
 	}
