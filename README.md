@@ -92,8 +92,26 @@ An MCP connector exposes the AIS read-only APIs to Claude, over stdio (local,
 Claude Desktop / Claude Code) and Streamable HTTP (remote, claude.ai custom
 connector). Tools: `create_consent`, `submit_authorization_code`,
 `authorize_in_browser`, `list_accounts`, `get_balances`, `get_transactions`
-(scope `AISP` only — no write operations). Build with `make connectors`; see
-[docs/connector.md](docs/connector.md) for setup.
+(scope `AISP` only — no write operations).
+
+**Install for Claude Code, one command:**
+
+```sh
+cp .env.example secrets/.env   # fill in; put the .p12 in secrets/ too
+make install                   # builds + registers the connector; restart Claude Code
+```
+
+Inside this repo you can instead just `make connectors` and approve the bundled
+`.mcp.json` when Claude Code prompts (zero config).
+
+**For claude.ai (web):**
+
+```sh
+make connector-dev             # HTTP server + bearer token + public tunnel
+```
+
+Then add the printed `<url>/mcp` + bearer token in claude.ai → Connectors. Full
+guide: [docs/connector.md](docs/connector.md).
 
 ## Repository layout
 
@@ -102,6 +120,7 @@ connector). Tools: `create_consent`, `submit_authorization_code`,
 psd2/           generated typed clients, one package per OpenAPI spec
 connector/      MCP connector for Claude (AIS read-only tools)
 cmd/            connector binaries (stdio + Streamable HTTP)
+.mcp.json       zero-config Claude Code registration for this repo
 specs/          OpenAPI specifications (source of truth for codegen)
 scripts/        codegen driver + spec sanitizer
 examples/       runnable examples (ais, sca)

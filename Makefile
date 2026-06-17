@@ -1,4 +1,4 @@
-.PHONY: all tools generate build test vet integration tidy clean connectors
+.PHONY: all tools generate build test vet integration tidy clean connectors install connector-dev
 
 OAPI_VERSION ?= latest
 
@@ -19,6 +19,14 @@ build:
 connectors:
 	go build -o bin/rbhu-connector ./cmd/rbhu-connector
 	go build -o bin/rbhu-connector-http ./cmd/rbhu-connector-http
+
+# Build + register the local (stdio) connector with Claude Code
+install:
+	./scripts/install-connector.sh
+
+# Run the HTTP connector + a public tunnel for a claude.ai web connector
+connector-dev:
+	./scripts/connector-dev.sh
 
 vet:
 	go vet ./...

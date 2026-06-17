@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "rbhu-ais": {
+      "command": "./bin/rbhu-connector",
+      "env": {
+        "RBHU_ENV_FILE": "./secrets/.env",
+        "RBHU_P12": "./secrets/certificate_RBHU_SB_KONG_PROD.p12"
+      }
+    }
+  }
+}
