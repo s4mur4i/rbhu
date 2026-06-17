@@ -260,17 +260,18 @@ type AccountIn struct {
 }
 
 type RawOut struct {
-	AccountID string          `json:"account_id"`
-	Data      json.RawMessage `json:"data"`
+	AccountID string `json:"account_id"`
+	// Data is the raw API payload. Typed as any so the generated MCP output
+	// schema is permissive (the live payloads are richer than the spec).
+	Data any `json:"data"`
 }
 
 func (cn *conn) getBalances(ctx context.Context, _ *mcp.CallToolRequest, in AccountIn) (*mcp.CallToolResult, RawOut, error) {
-	bal, err := cn.c.Balances(ctx, in.ConsentID, in.AccountID)
+	raw, err := cn.c.BalancesRaw(ctx, in.ConsentID, in.AccountID)
 	if err != nil {
 		return errResult(err), RawOut{}, nil
 	}
-	data, _ := json.Marshal(bal)
-	return nil, RawOut{AccountID: in.AccountID, Data: data}, nil
+	return nil, RawOut{AccountID: in.AccountID, Data: jsonToAny(raw)}, nil
 }
 
 // ---- get_transactions ----
@@ -282,12 +283,20 @@ type TransactionsIn struct {
 }
 
 func (cn *conn) getTransactions(ctx context.Context, _ *mcp.CallToolRequest, in TransactionsIn) (*mcp.CallToolResult, RawOut, error) {
-	tx, err := cn.c.Transactions(ctx, in.ConsentID, in.AccountID, in.BookingStatus)
+	raw, err := cn.c.TransactionsRaw(ctx, in.ConsentID, in.AccountID, in.BookingStatus)
 	if err != nil {
 		return errResult(err), RawOut{}, nil
 	}
-	data, _ := json.Marshal(tx)
-	return nil, RawOut{AccountID: in.AccountID, Data: data}, nil
+	return nil, RawOut{AccountID: in.AccountID, Data: jsonToAny(raw)}, nil
+}
+
+// jsonToAny decodes raw JSON into an any value for permissive MCP output.
+func jsonToAny(raw []byte) any {
+	var v any
+	if err := json.Unmarshal(raw, &v); err != nil {
+		return string(raw)
+	}
+	return v
 }
 
 // ---- helpers ----

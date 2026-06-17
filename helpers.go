@@ -2,7 +2,9 @@ package rbhu
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"time"
@@ -176,6 +178,63 @@ func (c *Client) Transactions(ctx context.Context, consentID, accountID, booking
 		return nil, errorFromResponse(resp.StatusCode(), resp.HTTPResponse, resp.Body)
 	}
 	return resp.JSON200, nil
+}
+
+// accountsRawClient builds the low-level (non-typed) accounts client, wired
+// like Accounts() but returning raw *http.Response. Used to read endpoints
+// whose live payloads do not match the OpenAPI spec strictly enough for the
+// generated typed decoder.
+func (c *Client) accountsRawClient() (*accounts.Client, error) {
+	return accounts.NewClient(c.env.URL(ServiceAccounts),
+		accounts.WithHTTPClient(c.httpClient), accounts.WithRequestEditorFn(c.requestEditor))
+}
+
+// BalancesRaw returns the raw balances JSON for an account (no strict typing).
+func (c *Client) BalancesRaw(ctx context.Context, consentID, accountID string) (json.RawMessage, error) {
+	lc, err := c.accountsRawClient()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := lc.GetBalances(ctx, accountID, &accounts.GetBalancesParams{
+		XRequestID: newUUID(), ConsentID: consentID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return readRawBody(resp)
+}
+
+// TransactionsRaw returns the raw transactions JSON for an account (no strict
+// typing). bookingStatus is booked, pending or both (default booked).
+func (c *Client) TransactionsRaw(ctx context.Context, consentID, accountID, bookingStatus string) (json.RawMessage, error) {
+	if bookingStatus == "" {
+		bookingStatus = "booked"
+	}
+	lc, err := c.accountsRawClient()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := lc.GetTransactionList(ctx, accountID, &accounts.GetTransactionListParams{
+		XRequestID:    newUUID(),
+		ConsentID:     consentID,
+		BookingStatus: accounts.GetTransactionListParamsBookingStatus(bookingStatus),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return readRawBody(resp)
+}
+
+func readRawBody(resp *http.Response) (json.RawMessage, error) {
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, parseAPIError(resp.StatusCode, resp.Header.Get("X-Request-ID"), body)
+	}
+	return body, nil
 }
 
 // errorFromResponse builds an APIError from a generated response's parts.
