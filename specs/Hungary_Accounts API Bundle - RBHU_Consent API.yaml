@@ -1,0 +1,793 @@
+openapi: 3.0.1
+x-kong-name: psd2-bgs-consent-api-132
+info:
+  title: Consent API
+  description: ""
+  version: 1.3.2.1
+servers:
+- url: https://hu-api-sandbox.raiffeisen.hu/rbhu/prod02/psd2-bgs-consent-api-1.3.2-rbhu/v1
+security:
+- clientIdHeader: []
+paths:
+  /consents:
+    post:
+      operationId: newConsent
+      tags:
+      - Request a new Consent
+      description: |
+        TPP Requests a new Consent.
+      parameters:
+      - name: client_id
+        in: header
+        description: Client ID
+        required: true
+        schema:
+          type: string
+      - name: X-Request-ID
+        in: header
+        description: Request ID
+        required: true
+        schema:
+          type: string
+          format: UUID
+      - name: PSU-ID
+        in: header
+        description: >-
+          Client ID of the PSU in the ASPSP client
+          interface.
+          It is mandated by the Raiffeisen Bank to be required field if the PSU-Corporate-ID is not provided.
+          It might be contained even if an OAuth2 based authentication was performed in a
+          pre-step In this case the ASPSP might
+          check whether PSU-ID and token match,
+          according to ASPSP documentation.
+        schema:
+          type: string
+      - name: PSU-ID-Type
+        in: header
+        description: Type of the PSU-ID, needed in scenarios where PSUs have several
+          PSU-IDs as access possibility.
+        schema:
+          type: string
+      - name: PSU-Corporate-ID
+        in: header
+        description: It is mandated by the Raiffeisen Bank to be required field if the PSU-ID is not provided.
+        schema:
+          type: string
+      - name: PSU-Corporate-ID-Type
+        in: header
+        description: Might be mandated in the ASPSP's documentation. Only used in
+          a corporate context.
+        schema:
+          type: string
+      - $ref: '#/components/parameters/digest'
+      - $ref: '#/components/parameters/signature'
+      - $ref: '#/components/parameters/tpp-signature-certificate'
+      - name: TPP-Redirect-Preferred
+        in: header
+        description: |-
+          If it equals "true", the TPP prefers a redirect over an embedded SCA approach.
+          If it equals "false", the TPP prefers not to be redirected for SCA. The ASPSP will then choose between the Embedded or the Decoupled
+          SCA approach, depending on the choice of the SCA procedure by the TPP/PSU.
+          If the parameter is not used, the ASPSP will choose the SCA approach to be applied depending on the SCA method chosen by the
+          TPP/PSU.
+        schema:
+          type: boolean
+      - name: TPP-Redirect-URI
+        in: header
+        description: |-
+          URI of the URI of the TPP, where the transaction
+            flow shall be redirected to after a
+            Redirect. Mandated for the Redirect SCA
+            Approach, specifically when TPP-Redirect-
+            Preferred equals "true". See Section 4.10 for
+            further requirements on this header.
+            It is recommended to always use this header
+            field.
+        schema:
+          type: string
+      - name: TPP-Nok-Redirect-URI
+        in: header
+        description: |-
+          If this URI is contained, the TPP is asking to redirect the transaction flow to this address instead of the TPP-Redirect-URI in case
+          of a negative result of the redirect SCA method. This might be ignored by the ASPSP.
+        schema:
+          type: string
+      - name: PSU-IP-Address
+        in: header
+        description: |-
+          The forwarded IP Address header field consists of the corresponding HTTP request
+          IP Address field between PSU and TPP.
+          It shall be contained if and only if this request was actively initiated by the PSU.
+        schema:
+          type: string
+      - name: PSU-IP-Port
+        in: header
+        description: The forwarded IP Port header field consists of the corresponding
+          HTTP request IP Port field between PSU and TPP, if available.
+        schema:
+          type: string
+      - name: PSU-Accept
+        in: header
+        description: The forwarded IP Accept header fields consist of the corresponding
+          HTTP request Accept header fields between PSU and TPP, if available.
+        schema:
+          type: string
+      - name: PSU-Accept-Charset
+        in: header
+        description: The forwarded IP Accept header fields consist of the corresponding
+          HTTP request Accept header fields between PSU and TPP, if available.
+        schema:
+          type: string
+      - name: PSU-Accept-Encoding
+        in: header
+        description: The forwarded IP Accept header fields consist of the corresponding
+          HTTP request Accept header fields between PSU and TPP, if available.
+        schema:
+          type: string
+      - name: PSU-Accept-Language
+        in: header
+        description: The forwarded IP Accept header fields consist of the corresponding
+          HTTP request Accept header fields between PSU and TPP, if available.
+        schema:
+          type: string
+      - name: PSU-User-Agent
+        in: header
+        description: |-
+          The forwarded Agent header field of the HTTP request between
+          PSU and TPP, if available.
+          Examples
+            * Android:  "Myappa/1.2 Dalvik/2.1.0 (Linux; U; Android 6.0.1; vivo 1610 Build/MMB29M)"
+            * iOS: "MyApp/1 iPhone5,2 iOS/10_1 CFNetwork/808.3 Darwin/16.3.0"
+        schema:
+          type: string
+      - name: PSU-Http-Method
+        in: header
+        description: |-
+          HTTP method used at the PSU ? TPP interface, if available.
+          Valid values are:
+          * GET
+          * POST
+          * PUT
+          * PATCH
+          * DELETE
+        schema:
+          type: string
+      - name: PSU-Device-ID
+        in: header
+        description: |-
+          UUID (Universally Unique Identifier) for a device, which is used by the PSU, if available.
+          UUID identifies either a device or a device dependant application installation.
+          In case of an installation identification this ID need to be unaltered until removal from device.
+        schema:
+          type: string
+          format: uuid
+      - name: PSU-Geo-Location
+        in: header
+        description: The forwarded Geo Location of the corresponding http request
+          between PSU and TPP if available.
+        schema:
+          pattern: GEO:-?[0-9]{1,2}\.[0-9]{6};-?[0-9]{1,3}\.[0-9]{6}
+          type: string
+      requestBody:
+        description: Consent body request
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/XS2A_Berlin_Create_Consent_Request'
+            examples:
+              "Consent Request on Dedicated Accounts":
+                $ref: "#/components/schemas/consentsExample_DedicatedAccounts"
+              "Consent Request on Account List or without Indication of dedicated Accounts":
+                $ref: "#/components/schemas/consentsExample_without_Accounts"
+        required: true
+      responses:
+        200:
+          description: Successful response
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Create_Consent_Response'
+        400:
+          description: Bad Request
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        404:
+          description: Not Found
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        408:
+          description: Request Timeout
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        500:
+          description: Internal Server Error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+      x-codegen-request-body-name: body
+  /consents/{consentId}:
+    get:
+      operationId: getConsent
+      tags:
+      - Request a new Consent
+      description: |
+        Returns the content of an account information consent object.
+      parameters:
+      - name: client_id
+        in: header
+        description: Client ID
+        required: true
+        schema:
+          type: string
+      - name: X-Request-ID
+        in: header
+        description: Request ID
+        required: true
+        schema:
+          type: string
+          format: UUID
+      - name: consentId
+        in: path
+        description: ID of the corresponding consent object as returned by an Account
+          Information Consent Request.
+        required: true
+        schema:
+          type: string
+          format: UUID
+      - $ref: '#/components/parameters/digest'
+      - $ref: '#/components/parameters/signature'
+      - $ref: '#/components/parameters/tpp-signature-certificate'
+      responses:
+        200:
+          description: Successful response
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Consent'
+        400:
+          description: Bad Request
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        404:
+          description: Not Found
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        408:
+          description: Request Timeout
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        500:
+          description: Internal Server Error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+    delete:
+      operationId: deleteConsent
+      tags:
+      - Request a new Consent
+      description: |
+        Deletes an account information consent object.
+      parameters:
+      - name: client_id
+        in: header
+        description: Client ID
+        required: true
+        schema:
+          type: string
+      - name: X-Request-ID
+        in: header
+        description: Request ID
+        required: true
+        schema:
+          type: string
+          format: UUID
+      - name: Authorization
+        in: header
+        description: OAuth2 based SCA was performed in the corresponding consent transaction
+          or if OAuth2 has been used in a pre-step.
+        required: true
+        schema:
+          type: string
+      - name: consentId
+        in: path
+        description: Contains the resource-ID of the consent to be deleted.
+        required: true
+        schema:
+          type: string
+          format: UUID
+      - $ref: '#/components/parameters/digest'
+      - $ref: '#/components/parameters/signature'
+      - $ref: '#/components/parameters/tpp-signature-certificate'
+      responses:
+        204:
+          description: Successful response
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content: {}
+        400:
+          description: Bad Request
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        404:
+          description: Not Found
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        408:
+          description: Request Timeout
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        500:
+          description: Internal Server Error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+  /consents/{consentId}/status:
+    get:
+      operationId: getConsentStatus
+      tags:
+      - Request a new Consent
+      description: |
+        Returns the content of an account information consent object.
+      parameters:
+      - name: X-Request-ID
+        in: header
+        description: Request ID
+        required: true
+        schema:
+          type: string
+          format: UUID
+      - name: consentId
+        in: path
+        description: The consent identification assigned to the created resource.
+        required: true
+        schema:
+          type: string
+          format: UUID
+      - $ref: '#/components/parameters/digest'
+      - $ref: '#/components/parameters/signature'
+      - $ref: '#/components/parameters/tpp-signature-certificate'
+      responses:
+        200:
+          description: Successful response
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Get_Consent_Status_Response'
+        404:
+          description: Not Found
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        408:
+          description: Request Timeout
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        500:
+          description: Internal Server Error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+components:
+  schemas:
+    XS2A_Berlin_Error:
+      type: object
+      properties:
+        errorCode:
+          type: string
+          description: Optional error code for reporting purposes.
+        errorDescription:
+          type: string
+          description: The description of the error.
+    XS2A_Berlin_Create_Consent_Request:
+      required:
+      - access
+      - combinedServiceIndicator
+      - frequencyPerDay
+      - recurringIndicator
+      - validUntil
+      type: object
+      properties:
+        access:
+          $ref: '#/components/schemas/XS2A_Berlin_Consent_Account_Access'
+        recurringIndicator:
+          type: boolean
+          description: true - if the consent is for recurring access to the account
+            data. false - if the consent is for one access to the account data
+          example: true
+        validUntil:
+          type: string
+          description: Datetime the transaction was created.
+          format: date
+          example: 2017-11-01
+        frequencyPerDay:
+          type: integer
+          description: This field indicates the requested maximum frequency for an
+            access per day. For a one-off access, this attribute is set to "1".
+          example: 4
+        combinedServiceIndicator:
+          type: boolean
+          description: true - indicates that a payment initiation service will be
+            addressed in the same "session" - NOT IMPLEMENTED AT THE MOMENT
+          example: true
+    XS2A_Berlin_Consent_Account_Access:
+      type: object
+      properties:
+        accounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/XS2A_Berlin_Consent_Resources'
+        balances:
+          type: array
+          items:
+            $ref: '#/components/schemas/XS2A_Berlin_Consent_Resources'
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/XS2A_Berlin_Consent_Resources'
+        additionalInformation:
+          type: object
+          properties:
+            ownerName:
+              $ref: '#/components/schemas/ownerName'
+      description: All attributes are optional but at minimum one of these should
+        exist.
+    ownerName:
+      type: array
+      items:
+        $ref: '#/components/schemas/XS2A_Berlin_Consent_Resources'
+    XS2A_Berlin_Create_Consent_Response:
+      required:
+      - _links
+      - consentStatus
+      type: object
+      properties:
+        consentStatus:
+          $ref: '#/components/schemas/XS2A_Berlin_Consent_Status'
+        consentId:
+          type: string
+          description: Identification of the consent resource as it is used in the
+            API structure. Shall be contained, if a consent resource was generated.
+        scaMethods:
+          type: array
+          items:
+            $ref: '#/components/schemas/XS2A_Sca_Methods'
+        _links:
+          $ref: '#/components/schemas/XS2A_Berlin_Links'
+    XS2A_Sca_Methods:
+      type: array
+      description: |-
+        This data element might be contained, if SCA is required and if the PSU has a choice between different
+        authentication methods.
+
+        Depending on the risk management of the ASPSP this choice might be offered before or after the PSU
+        has been identified with the first relevant factor, or if an access token is transported.
+
+        If this data element is contained, then there is also an hyperlink of type 'startAuthorisationWithAuthenticationMethodSelection'
+        contained in the response body.
+
+        These methods shall be presented towards the PSU for selection by the TPP.
+      items:
+        $ref: '#/components/schemas/authenticationObject'
+    authenticationObject:
+      title: authenticationObject
+      required:
+      - authenticationMethodId
+      - authenticationType
+      type: object
+      properties:
+        authenticationType:
+          $ref: '#/components/schemas/authenticationType'
+        authenticationVersion:
+          type: string
+          description: |-
+            Depending on the "authenticationType".
+            This version can be used by differentiating authentication tools used within performing OTP generation in the same authentication type.
+            This version can be referred to in the ASPSP?s documentation.
+        authenticationMethodId:
+          maxLength: 35
+          type: string
+          description: An identification provided by the ASPSP for the later identification
+            of the authentication method selection.
+          example: myAuthenticationID
+        name:
+          type: string
+          description: |-
+            This is the name of the authentication method defined by the PSU in the Online Banking frontend of the ASPSP.
+            Alternatively this could be a description provided by the ASPSP like "SMS OTP on phone +49160 xxxxx 28".
+            This name shall be used by the TPP when presenting a list of authentication methods to the PSU, if available.
+          example: SMS OTP on phone +49160 xxxxx 28
+        explanation:
+          type: string
+          description: Detailed information about the SCA method for the PSU.
+          example: Detailed information about the SCA method for the PSU.
+      description: Authentication Object
+    authenticationType:
+      title: authenticationType
+      type: string
+      enum:
+      - SMS_OTP
+      - CHIP_OTP
+      - PHOTO_OTP
+      - PUSH_OTP
+      - APP_TO_APP_IOS
+      - APP_TO_APP_ANDROID
+      - SCAREDIRECT
+    XS2A_Berlin_Get_Consent_Status_Response:
+      required:
+      - consentStatus
+      type: object
+      properties:
+        consentStatus:
+          $ref: '#/components/schemas/XS2A_Berlin_Consent_Status'
+    XS2A_Berlin_Links:
+      required:
+      - scaRedirect
+      - status
+      type: object
+      properties:
+        scaRedirect:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        status:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+    XS2A_Berlin_Href:
+      required:
+      - href
+      type: object
+      properties:
+        href:
+          type: string
+          example: https://api.testbank.com
+    XS2A_Berlin_Consent_Resources:
+      type: object
+      properties:
+        iban:
+          pattern: ^[A-Z]{2}[0-9]{2}[A-Z0-9]{12,30}$
+          type: string
+          description: IBAN of an account.
+          example: DE2310010010123456789
+        currency:
+          pattern: ^[A-Z]{3,3}$
+          type: string
+          description: Currency of an account.
+          example: USD
+    XS2A_Berlin_Consent:
+      required:
+      - access
+      - frequencyPerDay
+      - recurringIndicator
+      - validUntil
+      type: object
+      properties:
+        access:
+          $ref: '#/components/schemas/XS2A_Berlin_Consent_Account_Access'
+        recurringIndicator:
+          type: boolean
+          description: true - if the consent is for recurring access to the account
+            data. false - if the consent is for one access to the account data
+        validUntil:
+          type: string
+          description: Datetime the transaction was created.
+          format: date
+          example: 2017-11-01
+        frequencyPerDay:
+          type: number
+          description: This field indicates the requested maximum frequency for an
+            access per day. For a one-off access, this attribute is set to "1".
+          format: integer
+          example: 4.0
+        lastActionDate:
+          type: string
+          description: This date is containing the date of the last action on the
+            consent object either through the XS2A interface or the PSU/ASPSP interface
+            having an impact on the status.
+          format: date
+          example: 2017-11-01
+        consentStatus:
+          $ref: '#/components/schemas/XS2A_Berlin_Consent_Status'
+    XS2A_Berlin_Consent_Status:
+      type: string
+      description: Authentication status of the consent.
+      enum:
+      - received
+      - valid
+      - rejected
+      - revokedByPsu
+      - expired
+      - terminatedByTpp
+    consentsExample_DedicatedAccounts:
+      description: Consent on account list of available accounts.
+      value:
+        {
+          "access": {
+            "accounts": [
+              {
+                "iban": "DE2310010010123456789",
+                "currency": "USD"
+              }
+            ],
+            "balances": [
+              {
+                "iban": "DE2310010010123456789",
+                "currency": "USD"
+              }
+            ],
+            "transactions": [
+              {
+                "iban": "DE2310010010123456789",
+                "currency": "USD"
+              }
+            ],
+            "additionalInformation": {
+              "ownerName": [
+                {
+                  "iban": "DE2310010010123456789",
+                  "currency": "USD"
+                }
+              ]
+            }
+          },
+          "recurringIndicator": true,
+          "validUntil": "2017-11-01",
+          "frequencyPerDay": 4,
+          "combinedServiceIndicator": true
+        }
+    consentsExample_without_Accounts:
+      description: |
+        Currently, we do not support the option of initiating requests without indicating the dedicated accounts for the following network Banks: RBHU (Raiffeisen Hungary) and RDB (Raiffeisen Digital Bank). This relates to the example option "Consent without indication of the dedicated account", where the relation to the accounts selection is then handled afterwards at the SCA between PSU and the Bank.
+      value:
+        {
+          "access": {
+            "accounts": [],
+            "balances": [],
+            "transactions": []
+          },
+          "recurringIndicator": true,
+          "validUntil": "2024-03-07",
+          "frequencyPerDay": 4,
+          "combinedServiceIndicator": false
+        }
+  securitySchemes:
+    clientIdHeader:
+      type: apiKey
+      name: client_id
+      in: header
+  parameters:
+    digest:
+      name: Digest
+      in: header
+      description: |-
+        The digest is a base64 encoded hash of the body.
+        Hash the body of your request (or an empty string if there is no body) using the SHA-256 algorithm.
+        Base64 encode the output and add the result to your Digest header, specifying the hashing algorithm used.
+      schema:
+        type: string
+      example: SHA-256=ZuYiOtZkVxhjWmwTO5lOpsPevUNMezvk6dfb6fVhebM=
+    signature:
+      name: Signature
+      in: header
+      description: |-
+        A signature of the request by the TPP at the application level. This might be mandated by the ASPSP. 
+        The signature is a list of headers with their signed values. Any header can be used in the signature (including the `Digest` header), with the exception of the `client_id` header. 
+        To sign the `client_id` header, its name should be treated as `clientId`.
+        First, prepare the headers in the format of "header name: header value" with a line separator, e.g.,
+        ```
+        Digest: SHA-256=ZuYiOtZkVxhjWmwTO5lOpsPevUNMezvk6dfb6fVhebM=
+        clientId: WmwTO5lOpsPevUNMezvk6df
+        ```
+        Then, sign this string using your private key and hash it with SHA-256 using RSA.
+        Finally, base64 encode the resulting value. The `Signature` header should include the `keyId`, `algorithm="rsa-sha256"`, `headers` list, and the base64 encoded signature.
+      example: |-
+        keyId="SN=9FA1,CA=D-TRUST%20CA%202-1%202015,O=D-Trust%20GmbH,C=DE",algorithm="rsa-sha256",
+        headers="Digest clientId",
+        signature="Base64(RSA-SHA256(signing string))"
+      schema:
+        type: string
+    tpp-signature-certificate:
+      name: TPP-Signature-Certificate
+      in: header
+      description: |-
+        The certificate used for signing the request, in base64 encoding.
+        Must be included if a signature is present. The request must be signed with your QSEAL certificate.
+        The algorithm used for the signature must be RSA-SHA256. If this header is present, the `Signature` and `Digest` headers must also be provided.
+      schema:
+        type: string
+      example: MIIHXTCCBUWgAwIBAgIMIgFezw5y5yKRhs9TMA0GCSqGSIb3DQEBCwUAMGUxCzACORgEBMBMGBgQAjkYBBjAJBgcEAI5GAQYCMDQGBgQAjkYBBTAqMCgWImh0dHBzOi8vd3d3LmNlcnRzaWduLnJvL3JlcG9z...

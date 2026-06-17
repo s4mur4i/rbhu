@@ -1,0 +1,189 @@
+openapi: 3.0.1
+x-kong-name: psd2-cards-api-132
+info:
+  title: Confirmation of funds API
+  version: 1.3.2.2
+servers:
+  - url: https://hu-api-sandbox.raiffeisen.hu/rbhu/prod02/psd2-cards-api-1.3.2/v1
+security:
+  - clientIdHeader: []
+    OAuth2:
+      - PSP_IC
+paths:
+  /funds-confirmations:
+    post:
+      tags:
+        - Confirmation Of Funds
+      description: Confirmation Of Funds
+      operationId: postConfirmationOfFunds
+      x-kong-plugin-request-validator:
+        enabled: true
+      parameters:
+        - $ref: '#/components/parameters/X-Request-ID'
+        - $ref: '#/components/parameters/Consent-ID'
+        - $ref: '#/components/parameters/digest'
+        - $ref: '#/components/parameters/signature'
+        - $ref: '#/components/parameters/tpp-signature-certificate'
+      requestBody:
+        description: CISP confirmation of funds body
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/XS2A_Berlin_Fund_Confirmation_Request'
+        required: true
+      responses:
+        200:
+          description: 200 OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Fund_Confirmation_Response'
+        400:
+          description: 400 Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        401:
+          description: 401 Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+components:
+  schemas:
+    XS2A_Berlin_Fund_Confirmation_Request:
+      required:
+        - account
+        - instructedAmount
+      type: object
+      properties:
+        cardNumber:
+          type: string
+          description: Card Number of the card issued by the PIISP. Shouldbe delivered
+            if available.
+          example: "12345678901234"
+        account:
+          $ref: '#/components/schemas/XS2A_Berlin_Fund_Confirmation_Account'
+        payee:
+          type: string
+          description: The merchant where the card is accepted as an information to
+            the PSU.
+        instructedAmount:
+          $ref: '#/components/schemas/XS2A_Berlin_Fund_Confirmation_InstructedAmount'
+    XS2A_Berlin_Fund_Confirmation_Account:
+      type: object
+      properties:
+        iban:
+          type: string
+          description: PSU account IBAN
+          example: DE23100120020123456789
+    XS2A_Berlin_Fund_Confirmation_InstructedAmount:
+      type: object
+      properties:
+        currency:
+          type: string
+          description: Amount currency.
+          example: EUR
+        amount:
+          type: string
+          description: Amount to be checked.
+          example: "123"
+    XS2A_Berlin_Fund_Confirmation_Response:
+      type: object
+      properties:
+        fundsAvailable:
+          type: boolean
+          description: Equals true if sufficient funds are available at the time of
+            the request, false otherwise.
+          example: true
+    XS2A_Berlin_Error:
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/XS2A_Tpp_Message'
+    XS2A_Tpp_Message:
+      type: object
+      properties:
+        category:
+          type: string
+          description: State ERROR or WARNING.
+          enum:
+            - ERROR
+            - WARNING
+        code:
+          type: string
+          description: The code of the error.
+        text:
+          type: string
+          description: The description of the error.
+  parameters:
+    X-Request-ID:
+      name: X-Request-ID
+      in: header
+      description: Request ID
+      required: true
+      schema:
+        type: string
+    digest:
+      name: Digest
+      in: header
+      description: |-
+        The digest is a base64 encoded hash of the body.
+        Hash the body of your request (or an empty string if there is no body) using the SHA-256 algorithm.
+        Base64 encode the output and add the result to your Digest header, specifying the hashing algorithm used.
+      schema:
+        type: string
+      example: SHA-256=ZuYiOtZkVxhjWmwTO5lOpsPevUNMezvk6dfb6fVhebM=
+    signature:
+      name: Signature
+      in: header
+      description: |-
+        A signature of the request by the TPP at the application level. This might be mandated by the ASPSP. 
+        The signature is a list of headers with their signed values. Any header can be used in the signature (including the `Digest` header), with the exception of the `client_id` header. 
+        To sign the `client_id` header, its name should be treated as `clientId`.
+        First, prepare the headers in the format of "header name: header value" with a line separator, e.g.,
+        ```
+        Digest: SHA-256=ZuYiOtZkVxhjWmwTO5lOpsPevUNMezvk6dfb6fVhebM=
+        clientId: WmwTO5lOpsPevUNMezvk6df
+        ```
+        Then, sign this string using your private key and hash it with SHA-256 using RSA.
+        Finally, base64 encode the resulting value. The `Signature` header should include the `keyId`, `algorithm="rsa-sha256"`, `headers` list, and the base64 encoded signature.
+      example: |-
+        keyId="SN=9FA1,CA=D-TRUST%20CA%202-1%202015,O=D-Trust%20GmbH,C=DE",algorithm="rsa-sha256",
+        headers="Digest clientId",
+        signature="Base64(RSA-SHA256(signing string))"
+      schema:
+        type: string
+    tpp-signature-certificate:
+      name: TPP-Signature-Certificate
+      in: header
+      description: |-
+        The certificate used for signing the request, in base64 encoding.
+        Must be included if a signature is present. The request must be signed with your QSEAL certificate.
+        The algorithm used for the signature must be RSA-SHA256. If this header is present, the `Signature` and `Digest` headers must also be provided.
+      schema:
+        type: string
+      example: MIIHXTCCBUWgAwIBAgIMIgFezw5y5yKRhs9TMA0GCSqGSIb3DQEBCwUAMGUxCzACORgEBMBMGBgQAjkYBBjAJBgcEAI5GAQYCMDQGBgQAjkYBBTAqMCgWImh0dHBzOi8vd3d3LmNlcnRzaWduLnJvL3JlcG9z...
+    Consent-ID:
+      name: Consent-ID
+      in: header
+      required: true
+      schema:
+        type: string
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      description: "For the Confirmation of the Availability of Funds to be used by Payment Instrument Issuing Service"
+      flows:
+        authorizationCode:
+          authorizationUrl: https://api-sandbox.raiffeisen.hu/rbhu/prod02/psd2-rbhu-bridge-api/bridge/authorize
+          tokenUrl: https://api-sandbox.raiffeisen.hu/rbhu/prod02/cisp/oauth2/token
+          scopes:
+            PSP_IC: funds confirmation access.
+    clientIdHeader:
+      type: apiKey
+      name: client_id
+      in: header

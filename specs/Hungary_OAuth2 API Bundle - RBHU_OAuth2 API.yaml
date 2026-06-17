@@ -1,0 +1,85 @@
+openapi: '3.0.2'
+x-kong-name: psd2_oauth2_aisp_token_api
+info:
+  title: AISP OAuth 2.0 Plugin API
+  version: '1.0'
+  description: An API specification which is protected by the OAuth 2.0 Kong plugin / Client Credentials
+servers:
+  - url: https://hu-api-sandbox.raiffeisen.hu/rbhu/prod02
+tags:
+  - name: psd2-oauth2-aisp-token-api
+paths:
+  /aisp/oauth2/token:
+    post:
+      description: dedicated oauth2 endpoint
+      operationId: aisp_oauth2_token
+      tags:
+        - psd2-oauth2-aisp-token-api
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/tokenBody'
+      responses:
+        '200':
+          description: json document containing token, etc.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/access_token_response'
+components:
+  schemas:
+    tokenBody:
+      required:
+        - grant_type
+        - client_id
+        - provision_key
+        - client_secret
+        - code
+      type: object
+      properties:
+        grant_type:
+          type: string
+          description: Type of grant
+          enum:
+            - authorization_code
+            - refresh_token
+          example: authorization_code
+        client_id:
+          type: string
+          description: Application client ID, can be provided in formData or using HTTP Basic Authentication
+          example: d371b979-c037-4f2b-85ac-86f47e2b9f08
+        client_secret:
+          type: string
+          description: Application secret, must be provided in formData or using HTTP Basic Authentication
+          format: string
+          example: vHjyj9CBJIsnnxyqwx99137bNxsafUygsfanklYh52T6my
+        code:
+          type: string
+          description: Authorization code provided by the /oauth2/authorize endpoint
+          example: eKLKIw6TrTliQqo6DNtPExShyaHXlomW
+        redirect_uri:
+          type: string
+          description: required only if the redirect_uri parameter was included in the authorization request /oauth2/authorize; their values MUST be identical.
+          example: https://httpbin.org/get
+    access_token_response:
+      type: object
+      required:
+        - token_type
+        - access_token
+        - expires_in
+      properties:
+        token_type:
+          type: string
+          enum:
+            - bearer
+        access_token:
+          type: string
+          example: HLtNkAebrdF5NP3fhgyOc9uWgUfZrsxN
+        refresh_token:
+          type: string
+          example: 8mR5z4dU2pKboIEDDOfA4vVqIcwvP0Fw
+        expires_in:
+          type: integer
+          example: 300

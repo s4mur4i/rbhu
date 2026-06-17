@@ -1,0 +1,3412 @@
+openapi: 3.0.1
+x-kong-name: psd2-signing-baskets-api-132
+info:
+  title: Signing Baskets API
+  version: 1.3.2
+externalDocs:
+  description: |-
+    Full Documentation of NextGenPSD2 Access to Account Interoperability Framework
+    (General Introduction Paper, Operational Rules, Implementation Guidelines)
+  url: https://www.berlin-group.org/nextgenpsd2-downloads
+servers:
+  - url: https://hu-api-sandbox.raiffeisen.hu/rbhu/prod02/psd2-signing-baskets-api-1.3.2/v1/
+
+security:
+- clientIdHeader: []
+tags: []
+paths:
+  /signing-baskets:
+    post:
+      tags:
+        - Signing Basket Service (SBS)
+      summary: Create a signing basket resource
+      description: Create a signing basket resource for authorising several transactions
+        with one SCA method.
+      operationId: createSigningBasket
+      x-kong-plugin-request-validator:
+        enabled: true
+      parameters:
+        - name: X-Request-ID
+          in: header
+          description: ID of the request, unique to the call, as determined by the initiating
+            party.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/digest'
+        - $ref: '#/components/parameters/signature'
+        - $ref: '#/components/parameters/tpp-signature-certificate'
+        - name: PSU-ID
+          in: header
+          description: >-
+            Client ID of the PSU in the ASPSP client
+            interface.
+            It is mandated by the Raiffeisen Bank to be required field if the PSU-Corporate-ID is not provided.
+            It might be contained even if an OAuth2 based authentication was performed in a
+            pre-step In this case the ASPSP might
+            check whether PSU-ID and token match,
+            according to ASPSP documentation.
+          schema:
+            type: string
+        - name: PSU-ID-Type
+          in: header
+          description: Type of the PSU-ID, needed in scenarios where PSUs have several
+            PSU-IDs as access possibility.
+          schema:
+            type: string
+        - name: PSU-Corporate-ID
+          in: header
+          description: It is mandated by the Raiffeisen Bank to be required field if the PSU-ID is not provided.
+          schema:
+            type: string
+        - name: PSU-Corporate-ID-Type
+          in: header
+          description: Might be mandated in the ASPSP's documentation. Only used in
+            a corporate context.
+          schema:
+            type: string
+        - name: Consent-ID
+          in: header
+          description: This data element may be contained, if the payment initiation
+            transaction is part of a session, i.e. combined AIS/PIS service.
+          schema:
+            type: string
+        - $ref: "#/components/parameters/PSU-IP-Address"
+        - name: TPP-Redirect-Preferred
+          in: header
+          description: If it equals "true", the TPP prefers a redirect over an embedded
+            SCA approach. If it equals "false", the TPP prefers not to be redirected
+            for SCA.
+          schema:
+            type: string
+        - name: TPP-Redirect-URI
+          in: header
+          description: |-
+            URI of the URI of the TPP, where the transaction
+              flow shall be redirected to after a
+              Redirect. Mandated for the Redirect SCA
+              Approach, specifically when TPP-Redirect-
+              Preferred equals "true". See Section 4.10 for
+              further requirements on this header.
+              It is recommended to always use this header
+              field.
+          schema:
+            type: string
+        - name: TPP-Nok-Redirect-URI
+          in: header
+          description: If this URI is contained, the TPP is asking to redirect the transaction
+            flow to this address instead of the TPP-Redirect-URI in case of a negative
+            result of the redirect SCA method.
+          schema:
+            type: string
+        - name: TPP-Explicit-Authorisation-Preferred
+          in: header
+          description: If it equals "true", the TPP prefers to start the authorisation
+            process separately, e.g. because of the usage of a signing basket.
+          schema:
+            type: string
+        - name: PSU-IP-Port
+          in: header
+          description: The forwarded IP Port header field consists of the corresponding
+            HTTP request IP Port field between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-Accept
+          in: header
+          description: The forwarded IP Accept header fields consist of the corresponding
+            HTTP request Accept header fields between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-Accept-Charset
+          in: header
+          description: The forwarded IP Accept header fields consist of the corresponding
+            HTTP request Accept header fields between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-Accept-Encoding
+          in: header
+          description: The forwarded IP Accept header fields consist of the corresponding
+            HTTP request Accept header fields between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-Accept-Language
+          in: header
+          description: The forwarded IP Accept header fields consist of the corresponding
+            HTTP request Accept header fields between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-User-Agent
+          in: header
+          description: |-
+            The forwarded Agent header field of the HTTP request between
+            PSU and TPP, if available.
+            Examples
+              * Android:  "Myappa/1.2 Dalvik/2.1.0 (Linux; U; Android 6.0.1; vivo 1610 Build/MMB29M)"
+              * iOS: "MyApp/1 iPhone5,2 iOS/10_1 CFNetwork/808.3 Darwin/16.3.0"
+          schema:
+            type: string
+        - name: PSU-Http-Method
+          in: header
+          description: |-
+            HTTP method used at the PSU ? TPP interface, if available.
+            Valid values are:
+            * GET
+            * POST
+            * PUT
+            * PATCH
+            * DELETE
+          schema:
+            type: string
+            enum:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+        - name: PSU-Device-ID
+          in: header
+          description: |-
+            UUID (Universally Unique Identifier) for a device, which is used by the PSU, if available.
+            UUID identifies either a device or a device dependant application installation.
+            In case of an installation identification this ID need to be unaltered until removal from device.
+          schema:
+            type: string
+            format: uuid
+        - name: PSU-Geo-Location
+          in: header
+          description: The forwarded Geo Location of the corresponding http request
+            between PSU and TPP if available.
+          schema:
+            pattern: GEO:-?[0-9]{1,2}\.[0-9]{6};-?[0-9]{1,3}\.[0-9]{6}
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/signingBasket'
+        required: false
+      responses:
+        201:
+          description: Created
+          headers:
+            X-Request-ID:
+              description: ID of the request, unique to the call, as determined by
+                the initiating party.
+              schema:
+                type: string
+                format: uuid
+            ASPSP-SCA-Approach:
+              description: |
+                This data element must be contained, if the SCA Approach is already fixed.
+                Possible values are
+                  * EMBEDDED
+                  * DECOUPLED
+                  * REDIRECT
+                The OAuth SCA approach will be subsumed by REDIRECT.
+              schema:
+                type: string
+                enum:
+                  - EMBEDDED
+                  - DECOUPLED
+                  - REDIRECT
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+                format: url
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/signingBasketResponse-201'
+        400:
+          description: Bad Request
+          headers:
+            X-Request-ID:
+              description: ID of the request, unique to the call, as determined by
+                the initiating party.
+              schema:
+                type: string
+                format: uuid
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+                format: url
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400_NG_SBS'
+        401:
+          description: Unauthorized
+          headers:
+            X-Request-ID:
+              description: ID of the request, unique to the call, as determined by
+                the initiating party.
+              schema:
+                type: string
+                format: uuid
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+                format: url
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error401_NG_SBS'
+        403:
+          description: Forbidden
+          headers:
+            X-Request-ID:
+              description: ID of the request, unique to the call, as determined by
+                the initiating party.
+              schema:
+                type: string
+                format: uuid
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+                format: url
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403_NG_SBS'
+        404:
+          description: Not found
+          headers:
+            X-Request-ID:
+              description: ID of the request, unique to the call, as determined by
+                the initiating party.
+              schema:
+                type: string
+                format: uuid
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+                format: url
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error404_NG_SBS'
+        405:
+          description: Method Not Allowed
+          headers:
+            X-Request-ID:
+              description: ID of the request, unique to the call, as determined by
+                the initiating party.
+              schema:
+                type: string
+                format: uuid
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+                format: url
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error405_NG_SBS'
+        406:
+          description: Not Acceptable
+          headers:
+            X-Request-ID:
+              description: ID of the request, unique to the call, as determined by
+                the initiating party.
+              schema:
+                type: string
+                format: uuid
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+                format: url
+          content:
+            application/json:
+              schema:
+                type: object
+        408:
+          description: Request Timeout
+          headers:
+            X-Request-ID:
+              description: ID of the request, unique to the call, as determined by
+                the initiating party.
+              schema:
+                type: string
+                format: uuid
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+                format: url
+          content:
+            application/json:
+              schema:
+                type: object
+        409:
+          description: Conflict
+          headers:
+            X-Request-ID:
+              description: ID of the request, unique to the call, as determined by
+                the initiating party.
+              schema:
+                type: string
+                format: uuid
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+                format: url
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error409_NG_SBS'
+        415:
+          description: Unsupported Media Type
+          headers:
+            X-Request-ID:
+              description: ID of the request, unique to the call, as determined by
+                the initiating party.
+              schema:
+                type: string
+                format: uuid
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+                format: url
+          content:
+            application/json:
+              schema:
+                type: object
+        429:
+          description: Too Many Requests
+          headers:
+            X-Request-ID:
+              description: ID of the request, unique to the call, as determined by
+                the initiating party.
+              schema:
+                type: string
+                format: uuid
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+                format: url
+          content:
+            application/json:
+              schema:
+                type: object
+        500:
+          description: Internal Server Error
+          headers:
+            X-Request-ID:
+              description: ID of the request, unique to the call, as determined by
+                the initiating party.
+              schema:
+                type: string
+                format: uuid
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+                format: url
+          content:
+            application/json:
+              schema:
+                type: object
+        503:
+          description: Service Unavailable
+          headers:
+            X-Request-ID:
+              description: ID of the request, unique to the call, as determined by
+                the initiating party.
+              schema:
+                type: string
+                format: uuid
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+                format: url
+          content:
+            application/json:
+              schema:
+                type: object
+      x-codegen-request-body-name: body
+  /signing-baskets/{basketId}:
+    get:
+      tags:
+        - Signing Basket Service (SBS)
+      summary: Get Payment Information
+      description: Returns the content of a payment object.
+      operationId: getBasketInformation
+      x-kong-plugin-request-validator:
+        enabled: true
+      parameters:
+        - name: basketId
+          in: path
+          description: Resource identification of the generated basket initiation resource.
+          required: true
+          schema:
+            type: string
+        - name: X-Request-ID
+          in: header
+          description: ID of the request, unique to the call, as determined by the initiating
+            party.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/digest'
+        - $ref: '#/components/parameters/signature'
+        - $ref: '#/components/parameters/tpp-signature-certificate'
+        - $ref: "#/components/parameters/PSU-IP-Address"
+        - name: PSU-IP-Port
+          in: header
+          description: The forwarded IP Port header field consists of the corresponding
+            HTTP request IP Port field between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-Accept
+          in: header
+          description: The forwarded IP Accept header fields consist of the corresponding
+            HTTP request Accept header fields between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-Accept-Charset
+          in: header
+          description: The forwarded IP Accept header fields consist of the corresponding
+            HTTP request Accept header fields between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-Accept-Encoding
+          in: header
+          description: The forwarded IP Accept header fields consist of the corresponding
+            HTTP request Accept header fields between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-Accept-Language
+          in: header
+          description: The forwarded IP Accept header fields consist of the corresponding
+            HTTP request Accept header fields between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-User-Agent
+          in: header
+          description: |-
+            The forwarded Agent header field of the HTTP request between
+            PSU and TPP, if available.
+            Examples
+              * Android:  "Myappa/1.2 Dalvik/2.1.0 (Linux; U; Android 6.0.1; vivo 1610 Build/MMB29M)"
+              * iOS: "MyApp/1 iPhone5,2 iOS/10_1 CFNetwork/808.3 Darwin/16.3.0"
+          schema:
+            type: string
+        - name: PSU-Http-Method
+          in: header
+          description: |-
+            HTTP method used at the PSU ? TPP interface, if available.
+            Valid values are:
+            * GET
+            * POST
+            * PUT
+            * PATCH
+            * DELETE
+          schema:
+            type: string
+            enum:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+        - name: PSU-Device-ID
+          in: header
+          description: |-
+            UUID (Universally Unique Identifier) for a device, which is used by the PSU, if available.
+            UUID identifies either a device or a device dependant application installation.
+            In case of an installation identification this ID need to be unaltered until removal from device.
+          schema:
+            type: string
+            format: uuid
+        - name: PSU-Geo-Location
+          in: header
+          description: The forwarded Geo Location of the corresponding http request
+            between PSU and TPP if available.
+          schema:
+            pattern: GEO:-?[0-9]{1,2}\.[0-9]{6};-?[0-9]{1,3}\.[0-9]{6}
+            type: string
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BasketPaymentInitResponseList'
+        400:
+          description: Bad Request
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400_NG_PIS'
+        401:
+          description: Unauthorized
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error401_NG_PIS'
+        403:
+          description: Forbidden
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403_NG_PIS'
+        404:
+          description: Not found
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error404_NG_PIS'
+        405:
+          description: Method Not Allowed
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error405_NG_PIS'
+        406:
+          description: Not Acceptable
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        408:
+          description: Request Timeout
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        409:
+          description: Conflict
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error409_NG_PIS'
+        415:
+          description: Unsuported Media Type
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        429:
+          description: Too Many Requests
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        500:
+          description: Internal Server Error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        503:
+          description: Service Unavailable
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+    delete:
+      tags:
+        - Signing Basket Service (SBS)
+      summary: deleteSigningBasket
+      description: "Delete the signing basket structure as long as no (partial) authorisation
+        has yet been applied. The undlerying transactions are not affected by
+        this deletion.Remark: The signing basket as such is not deletable after
+        a first (partial) authorisation has been applied. \nNevertheless, single
+        transactions might be cancelled on an individual basis on the XS2A interface."
+      operationId: cancelSigningBasket
+      x-kong-plugin-request-validator:
+        enabled: true
+      parameters:
+        - name: basketId
+          in: path
+          description: This identification of the corresponding signing basket object.
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/digest'
+        - $ref: '#/components/parameters/signature'
+        - $ref: '#/components/parameters/tpp-signature-certificate'
+      responses:
+        204:
+          description: No Content
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+          content: {}
+        400:
+          description: Bad Request
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400_NG_SBS'
+        401:
+          description: Unauthorized
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error401_NG_SBS'
+        403:
+          description: Forbidden
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403_NG_SBS'
+        404:
+          description: Not found
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error404_NG_SBS'
+        405:
+          description: Method Not Allowed
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error405_NG_SBS'
+        406:
+          description: Not Acceptable
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        408:
+          description: Request Timeout
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        409:
+          description: Conflict
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error409_NG_SBS'
+        415:
+          description: Unsuported Media Type
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        429:
+          description: Too Many Requests
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        500:
+          description: Internal Server Error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        503:
+          description: Service Unavailable
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+      deprecated: false
+  /signing-baskets/{basketId}/status:
+    get:
+      tags:
+        - Signing Basket Service (SBS)
+      summary: Read the status of the signing basket
+      description: Returns the status of a signing basket object.
+      operationId: getSigningBasketStatus
+      x-kong-plugin-request-validator:
+        enabled: true
+      parameters:
+        - name: basketId
+          in: path
+          description: Resource identification of the generated basket initiation resource.
+          required: true
+          schema:
+            type: string
+        - name: X-Request-ID
+          in: header
+          description: ID of the request, unique to the call, as determined by the initiating
+            party.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/digest'
+        - $ref: '#/components/parameters/signature'
+        - $ref: '#/components/parameters/tpp-signature-certificate'
+        - name: PSU-ID
+          in: header
+          description: |-
+            Client ID of the PSU in the ASPSP client interface. Might be mandated in the ASPSP's documentation.
+            Is not contained if an OAuth2 based authentication was performed in a pre-step or an OAuth2 based SCA was performed in an preceding
+            AIS service in the same session.
+          schema:
+            type: string
+        - name: PSU-ID-Type
+          in: header
+          description: Type of the PSU-ID, needed in scenarios where PSUs have several
+            PSU-IDs as access possibility.
+          schema:
+            type: string
+        - name: PSU-Corporate-ID
+          in: header
+          description: Might be mandated in the ASPSP's documentation. Only used in
+            a corporate context.
+          schema:
+            type: string
+        - name: PSU-Corporate-ID-Type
+          in: header
+          description: Might be mandated in the ASPSP's documentation. Only used in
+            a corporate context.
+          schema:
+            type: string
+        - $ref: "#/components/parameters/PSU-IP-Address"
+        - name: PSU-IP-Port
+          in: header
+          description: The forwarded IP Port header field consists of the corresponding
+            HTTP request IP Port field between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-Accept
+          in: header
+          description: The forwarded IP Accept header fields consist of the corresponding
+            HTTP request Accept header fields between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-Accept-Charset
+          in: header
+          description: The forwarded IP Accept header fields consist of the corresponding
+            HTTP request Accept header fields between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-Accept-Encoding
+          in: header
+          description: The forwarded IP Accept header fields consist of the corresponding
+            HTTP request Accept header fields between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-Accept-Language
+          in: header
+          description: The forwarded IP Accept header fields consist of the corresponding
+            HTTP request Accept header fields between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-User-Agent
+          in: header
+          description: |-
+            The forwarded Agent header field of the HTTP request between
+            PSU and TPP, if available.
+            Examples
+              * Android:  "Myappa/1.2 Dalvik/2.1.0 (Linux; U; Android 6.0.1; vivo 1610 Build/MMB29M)"
+              * iOS: "MyApp/1 iPhone5,2 iOS/10_1 CFNetwork/808.3 Darwin/16.3.0"
+          schema:
+            type: string
+        - name: PSU-Http-Method
+          in: header
+          description: |-
+            HTTP method used at the PSU ? TPP interface, if available.
+            Valid values are:
+            * GET
+            * POST
+            * PUT
+            * PATCH
+            * DELETE
+          schema:
+            type: string
+            enum:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+        - name: PSU-Device-ID
+          in: header
+          description: |-
+            UUID (Universally Unique Identifier) for a device, which is used by the PSU, if available.
+            UUID identifies either a device or a device dependant application installation.
+            In case of an installation identification this ID need to be unaltered until removal from device.
+          schema:
+            type: string
+            format: uuid
+        - name: PSU-Geo-Location
+          in: header
+          description: The forwarded Geo Location of the corresponding http request
+            between PSU and TPP if available.
+          schema:
+            pattern: GEO:-?[0-9]{1,2}\.[0-9]{6};-?[0-9]{1,3}\.[0-9]{6}
+            type: string
+      responses:
+        200:
+          description: ""
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OK_200_SigningBasketStatus'
+        400:
+          description: Bad Request
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400_NG_PIS'
+        401:
+          description: Unauthorized
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error401_NG_PIS'
+        403:
+          description: Forbidden
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403_NG_PIS'
+        404:
+          description: Not found
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error404_NG_PIS'
+        405:
+          description: Method Not Allowed
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error405_NG_PIS'
+        406:
+          description: Not Acceptable
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        408:
+          description: Request Timeout
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        409:
+          description: Conflict
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error409_NG_PIS'
+        415:
+          description: Unsuported Media Type
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        429:
+          description: Too Many Requests
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        500:
+          description: Internal Server Error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        503:
+          description: Service Unavailable
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+  /signing-baskets/{basketId}/authorisations:
+    get:
+      tags:
+        - Signing Baskets (SBS)
+      summary: getSigningBasketAuthorisation
+      description: |
+        Read a list of all authorisation subresources IDs which have been created.
+
+        This function returns an array of hyperlinks to all generated authorisation sub-resources.
+      operationId: getSigningBasketAuthorisation
+      x-kong-plugin-request-validator:
+        enabled: true
+      parameters:
+        - name: basketId
+          in: path
+          description: This identification of the corresponding signing basket object.
+          required: true
+          schema:
+            type: string
+        - name: X-Request-ID
+          in: header
+          description: ID of the request, unique to the call, as determined by the initiating
+            party.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/digest'
+        - $ref: '#/components/parameters/signature'
+        - $ref: '#/components/parameters/tpp-signature-certificate'
+        - $ref: "#/components/parameters/PSU-IP-Address"
+        - name: PSU-IP-Port
+          in: header
+          description: The forwarded IP Port header field consists of the corresponding
+            HTTP request IP Port field between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-Accept
+          in: header
+          description: The forwarded IP Accept header fields consist of the corresponding
+            HTTP request Accept header fields between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-Accept-Charset
+          in: header
+          description: The forwarded IP Accept header fields consist of the corresponding
+            HTTP request Accept header fields between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-Accept-Encoding
+          in: header
+          description: The forwarded IP Accept header fields consist of the corresponding
+            HTTP request Accept header fields between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-Accept-Language
+          in: header
+          description: The forwarded IP Accept header fields consist of the corresponding
+            HTTP request Accept header fields between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-User-Agent
+          in: header
+          description: |-
+            The forwarded Agent header field of the HTTP request between
+            PSU and TPP, if available.
+            Examples
+              * Android:  "Myappa/1.2 Dalvik/2.1.0 (Linux; U; Android 6.0.1; vivo 1610 Build/MMB29M)"
+              * iOS: "MyApp/1 iPhone5,2 iOS/10_1 CFNetwork/808.3 Darwin/16.3.0"
+          schema:
+            type: string
+        - name: PSU-Http-Method
+          in: header
+          description: |-
+            HTTP method used at the PSU ? TPP interface, if available.
+            Valid values are:
+            * GET
+            * POST
+            * PUT
+            * PATCH
+            * DELETE
+          schema:
+            type: string
+            enum:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+        - name: PSU-Device-ID
+          in: header
+          description: |-
+            UUID (Universally Unique Identifier) for a device, which is used by the PSU, if available.
+            UUID identifies either a device or a device dependant application installation.
+            In case of an installation identification this ID need to be unaltered until removal from device.
+          schema:
+            type: string
+            format: uuid
+        - name: PSU-Geo-Location
+          in: header
+          description: The forwarded Geo Location of the corresponding http request
+            between PSU and TPP if available.
+          schema:
+            pattern: GEO:-?[0-9]{1,2}\.[0-9]{6};-?[0-9]{1,3}\.[0-9]{6}
+            type: string
+      responses:
+        200:
+          description: OK
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/authorisations'
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400_NG_SBS'
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error401_NG_SBS'
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403_NG_SBS'
+        404:
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error404_NG_SBS'
+        405:
+          description: Method Not Allowed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error405_NG_SBS'
+        406:
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: object
+        408:
+          description: Request Timeout
+          content:
+            application/json:
+              schema:
+                type: object
+        409:
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error409_NG_SBS'
+        415:
+          description: Unsupported Media Type
+          content:
+            application/json:
+              schema:
+                type: object
+        429:
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                type: object
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+        503:
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                type: object
+      deprecated: false
+    post:
+      tags:
+        - Signing Baskets (SBS)
+      summary: startSigningBasketAuthorisation
+      description: |
+        Create an authorisation sub-resource and start the authorisation process of a signing basket.
+        The message might in addition transmit authentication and authorisation related data.
+
+        This method is iterated n times for a n times SCA authorisation in a
+        corporate context, each creating an own authorisation sub-endpoint for
+        the corresponding PSU authorising the signing-baskets.
+
+        The ASPSP might make the usage of this access method unnecessary in case
+        of only one SCA process needed, since the related authorisation resource
+        might be automatically created by the ASPSP after the submission of the
+        payment data with the first POST signing basket call.
+
+        The start authorisation process is a process which is needed for creating a new authorisation
+        or cancellation sub-resource.
+
+        This applies in the following scenarios:
+
+          * The ASPSP has indicated with an 'startAuthorisation' hyperlink in the preceding Payment
+            Initiation Response that an explicit start of the authorisation process is needed by the TPP.
+            The 'startAuthorisation' hyperlink can transport more information about data which needs to be
+            uploaded by using the extended forms.
+            * 'startAuthorisationWithPsuIdentfication',
+            * 'startAuthorisationWithPsuAuthentication'
+            * 'startAuthorisationWithEncryptedPsuAuthentication'
+            * 'startAuthorisationWithAuthentciationMethodSelection'
+          * The related payment initiation cannot yet be executed since a multilevel SCA is mandated.
+          * The ASPSP has indicated with an 'startAuthorisation' hyperlink in the preceding
+            Payment Cancellation Response that an explicit start of the authorisation process is needed by the TPP.
+            The 'startAuthorisation' hyperlink can transport more information about data which needs to be uploaded
+            by using the extended forms as indicated above.
+          * The related payment cancellation request cannot be applied yet since a multilevel SCA is mandate for
+            executing the cancellation.
+          * The signing basket needs to be authorised yet.
+      operationId: postSigningBasketAuthorisation
+      x-kong-plugin-request-validator:
+        enabled: true
+      parameters:
+        - name: basketId
+          in: path
+          description: This identification of the corresponding signing basket object.
+          required: true
+          schema:
+            type: string
+        - name: X-Request-ID
+          in: header
+          description: ID of the request, unique to the call, as determined by the initiating
+            party.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/digest'
+        - $ref: '#/components/parameters/signature'
+        - $ref: '#/components/parameters/tpp-signature-certificate'
+        - name: PSU-ID
+          in: header
+          description: |-
+            Client ID of the PSU in the ASPSP client interface. Might be mandated in the ASPSP's documentation.
+            Is not contained if an OAuth2 based authentication was performed in a pre-step or an OAuth2 based SCA was performed in an preceding
+            AIS service in the same session.
+          schema:
+            type: string
+        - name: PSU-ID-Type
+          in: header
+          description: Type of the PSU-ID, needed in scenarios where PSUs have several
+            PSU-IDs as access possibility.
+          schema:
+            type: string
+        - name: PSU-Corporate-ID
+          in: header
+          description: Might be mandated in the ASPSP's documentation. Only used in
+            a corporate context.
+          schema:
+            type: string
+        - name: PSU-Corporate-ID-Type
+          in: header
+          description: Might be mandated in the ASPSP's documentation. Only used in
+            a corporate context.
+          schema:
+            type: string
+        - name: TPP-Redirect-Preferred
+          in: header
+          description: |-
+            If it equals "true", the TPP prefers a redirect over an embedded SCA approach.
+            If it equals "false", the TPP prefers not to be redirected for SCA. The ASPSP will then choose between the Embedded or the Decoupled
+            SCA approach, depending on the choice of the SCA procedure by the TPP/PSU.
+            If the parameter is not used, the ASPSP will choose the SCA approach to be applied depending on the SCA method chosen by the
+            TPP/PSU.
+          schema:
+            type: string
+            enum:
+              - "true"
+              - "false"
+        - name: TPP-Redirect-URI
+          in: header
+          description: |-
+            URI of the TPP, where the transaction flow shall be redirected to after a Redirect.
+
+            Mandated for the Redirect SCA Approach, specifically
+            when TPP-Redirect-Preferred equals "true".
+            It is recommended to always use this header field.
+
+            **Remark for Future:**
+            This field might be changed to mandatory in the next version of the specification.
+          schema:
+            type: string
+        - name: TPP-Nok-Redirect-URI
+          in: header
+          description: |-
+            If this URI is contained, the TPP is asking to redirect the transaction flow to this address instead of the TPP-Redirect-URI in case
+            of a negative result of the redirect SCA method. This might be ignored by the ASPSP.
+          schema:
+            type: string
+        - $ref: "#/components/parameters/PSU-IP-Address"
+        - name: PSU-IP-Port
+          in: header
+          description: The forwarded IP Port header field consists of the corresponding
+            HTTP request IP Port field between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-Accept
+          in: header
+          description: The forwarded IP Accept header fields consist of the corresponding
+            HTTP request Accept header fields between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-Accept-Charset
+          in: header
+          description: The forwarded IP Accept header fields consist of the corresponding
+            HTTP request Accept header fields between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-Accept-Encoding
+          in: header
+          description: The forwarded IP Accept header fields consist of the corresponding
+            HTTP request Accept header fields between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-Accept-Language
+          in: header
+          description: The forwarded IP Accept header fields consist of the corresponding
+            HTTP request Accept header fields between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-User-Agent
+          in: header
+          description: |-
+            The forwarded Agent header field of the HTTP request between
+            PSU and TPP, if available.
+            Examples
+              * Android:  "Myappa/1.2 Dalvik/2.1.0 (Linux; U; Android 6.0.1; vivo 1610 Build/MMB29M)"
+              * iOS: "MyApp/1 iPhone5,2 iOS/10_1 CFNetwork/808.3 Darwin/16.3.0"
+          schema:
+            type: string
+        - name: PSU-Http-Method
+          in: header
+          description: |-
+            HTTP method used at the PSU ? TPP interface, if available.
+            Valid values are:
+            * GET
+            * POST
+            * PUT
+            * PATCH
+            * DELETE
+          schema:
+            type: string
+            enum:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+        - name: PSU-Device-ID
+          in: header
+          description: |-
+            UUID (Universally Unique Identifier) for a device, which is used by the PSU, if available.
+            UUID identifies either a device or a device dependant application installation.
+            In case of an installation identification this ID need to be unaltered until removal from device.
+          schema:
+            type: string
+            format: uuid
+        - name: PSU-Geo-Location
+          in: header
+          description: The forwarded Geo Location of the corresponding http request
+            between PSU and TPP if available.
+          schema:
+            pattern: GEO:-?[0-9]{1,2}\.[0-9]{6};-?[0-9]{1,3}\.[0-9]{6}
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        required: false
+      responses:
+        201:
+          description: Created
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            ASPSP-SCA-Approach:
+              schema:
+                type: string
+                default: EMBEDDED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/startScaprocessResponse'
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400_NG_SBS'
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error401_NG_SBS'
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403_NG_SBS'
+        404:
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error404_NG_SBS'
+        405:
+          description: Method Not Allowed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error405_NG_SBS'
+        406:
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: object
+        408:
+          description: Request Timeout
+          content:
+            application/json:
+              schema:
+                type: object
+        409:
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error409_NG_SBS'
+        415:
+          description: Unsupported Media Type
+          content:
+            application/json:
+              schema:
+                type: object
+        429:
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                type: object
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+        503:
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                type: object
+      deprecated: false
+      x-codegen-request-body-name: body
+  /signing-baskets/{basketId}/authorisations/{authorisationId}:
+    get:
+      tags:
+        - Signing Baskets (SBS)
+      summary: getSigningBasketScaStatus
+      description: |
+        This method returns the SCA status of a signing basket's authorisation sub-resource.
+      operationId: getSigningBasketScaStatus
+      x-kong-plugin-request-validator:
+        enabled: true
+      parameters:
+        - name: basketId
+          in: path
+          description: This identification of the corresponding signing basket object.
+          required: true
+          schema:
+            type: string
+        - name: authorisationId
+          in: path
+          description: Resource identification of the related SCA.
+          required: true
+          schema:
+            type: string
+        - name: X-Request-ID
+          in: header
+          description: ID of the request, unique to the call, as determined by the initiating
+            party.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/digest'
+        - $ref: '#/components/parameters/signature'
+        - $ref: '#/components/parameters/tpp-signature-certificate'
+        - $ref: "#/components/parameters/PSU-IP-Address"
+        - name: PSU-IP-Port
+          in: header
+          description: The forwarded IP Port header field consists of the corresponding
+            HTTP request IP Port field between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-Accept
+          in: header
+          description: The forwarded IP Accept header fields consist of the corresponding
+            HTTP request Accept header fields between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-Accept-Charset
+          in: header
+          description: The forwarded IP Accept header fields consist of the corresponding
+            HTTP request Accept header fields between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-Accept-Encoding
+          in: header
+          description: The forwarded IP Accept header fields consist of the corresponding
+            HTTP request Accept header fields between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-Accept-Language
+          in: header
+          description: The forwarded IP Accept header fields consist of the corresponding
+            HTTP request Accept header fields between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-User-Agent
+          in: header
+          description: |-
+            The forwarded Agent header field of the HTTP request between
+            PSU and TPP, if available.
+            Examples
+              * Android:  "Myappa/1.2 Dalvik/2.1.0 (Linux; U; Android 6.0.1; vivo 1610 Build/MMB29M)"
+              * iOS: "MyApp/1 iPhone5,2 iOS/10_1 CFNetwork/808.3 Darwin/16.3.0"
+          schema:
+            type: string
+        - name: PSU-Http-Method
+          in: header
+          description: |-
+            HTTP method used at the PSU ? TPP interface, if available.
+            Valid values are:
+            * GET
+            * POST
+            * PUT
+            * PATCH
+            * DELETE
+          schema:
+            type: string
+            enum:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+        - name: PSU-Device-ID
+          in: header
+          description: |-
+            UUID (Universally Unique Identifier) for a device, which is used by the PSU, if available.
+            UUID identifies either a device or a device dependant application installation.
+            In case of an installation identification this ID need to be unaltered until removal from device.
+          schema:
+            type: string
+            format: uuid
+        - name: PSU-Geo-Location
+          in: header
+          description: The forwarded Geo Location of the corresponding http request
+            between PSU and TPP if available.
+          schema:
+            pattern: GEO:-?[0-9]{1,2}\.[0-9]{6};-?[0-9]{1,3}\.[0-9]{6}
+            type: string
+      responses:
+        200:
+          description: OK
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/scaStatusResponse'
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400_NG_SBS'
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error401_NG_SBS'
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403_NG_SBS'
+        404:
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error404_NG_SBS'
+        405:
+          description: Method Not Allowed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error405_NG_SBS'
+        406:
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: object
+        408:
+          description: Request Timeout
+          content:
+            application/json:
+              schema:
+                type: object
+        409:
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error409_NG_SBS'
+        415:
+          description: Unsupported Media Type
+          content:
+            application/json:
+              schema:
+                type: object
+        429:
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                type: object
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+        503:
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                type: object
+      deprecated: false
+components:
+  schemas:
+    psuMessageText:
+      maxLength: 512
+      type: string
+      description: Text to be displayed to the PSU
+    _linksSigningBasket:
+      type: object
+      properties:
+        scaRedirect:
+          $ref: '#/components/schemas/hrefType'
+        scaOAuth:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisation:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithPsuIdentification:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithPsuAuthentication:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithEncryptedPsuAuthentication:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithAuthenticationMethodSelection:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithTransactionAuthorisation:
+          $ref: '#/components/schemas/hrefType'
+        self:
+          $ref: '#/components/schemas/hrefType'
+        status:
+          $ref: '#/components/schemas/hrefType'
+        scaStatus:
+          $ref: '#/components/schemas/hrefType'
+        new-property-1:
+          $ref: '#/components/schemas/hrefType'
+      description: "A list of hyperlinks to be recognised by the TPP. The actual hyperlinks\
+        \ used in the\n\t  response depend on the dynamical decisions of the ASPSP\
+        \ when processing the request.\n\t    * 'scaRedirect':\n\t\t  In case of an\
+        \ SCA Redirect Approach, the ASPSP is transmitting the link to\n\t\t  which\
+        \ to redirect the PSU browser.\n\t    * 'scaOAuth':\n\t\t  In case of a SCA\
+        \ OAuth2 Approach, the ASPSP is transmitting the URI where the configuration\
+        \ of\n\t\t  the Authorisation Server can be retrieved. The configuration follows\
+        \ the\n\t\t  OAuth 2.0 Authorisation Server Metadata specification.\n\t  \
+        \  * 'startAuthorisation':\n\t\t  In case, where an explicit start of the\
+        \ transaction authorisation is needed,\n\t\t  but no more data needs to be\
+        \ updated (no authentication method to be selected,\n\t\t  no PSU identification\
+        \ nor PSU authentication data to be uploaded).\n\t    * 'startAuthorisationWithPsuIdentification':\n\
+        \t\t  The link to the authorisation end-point, where the authorisation sub-resource\n\
+        \t\t  has to be generated while uploading the PSU identification data.\n\t\
+        \    * 'startAuthorisationWithPsuAuthentication':\n\t\t  The link to the authorisation\
+        \ end-point, where the authorisation sub-resource\n\t\t  has to be generated\
+        \ while uploading the PSU authentication data.\n\t    * 'startAuthorisationWithEncryptedPsuAuthentication':\n\
+        \t\t  The link to the authorisation end-point, where the authorisation sub-resource\
+        \ has\n\t\t  to be generated while uploading the encrypted PSU authentication\
+        \ data.\n\t    * 'startAuthorisationWithAuthenticationMethodSelection':\n\t\
+        \t  The link to the authorisation end-point, where the authorisation sub-resource\n\
+        \t\t  has to be generated while selecting the authentication method.\n\t\t\
+        \  This link is contained under exactly the same conditions as the data element\
+        \ 'scaMethods'\n\t    * 'startAuthorisationWithTransactionAuthorisation':\n\
+        \t\t  The link to the authorisation end-point, where the authorisation sub-resource\n\
+        \t\t  has to be generated while authorising the transaction e.g. by uploading\
+        \ an\n\t\t  OTP received by SMS.\n\t    * 'self':\n\t\t  The link to the payment\
+        \ initiation resource created by this request.\n\t\t  This link can be used\
+        \ to retrieve the resource data.\n\t    * 'status':\n\t\t  The link to retrieve\
+        \ the transaction status of the payment initiation.\n\t    * 'scaStatus':\n\
+        \t\t  The link to retrieve the scaStatus of the corresponding authorisation\
+        \ sub-resource.\n\t\t  This link is only contained, if an authorisation sub-resource\
+        \ has been already created."
+    basketId:
+      type: string
+      description: Resource identification of the generated signing basket resource.
+      example: 1234-basket-567
+    transactionStatus_SBS:
+      type: string
+      description: |
+        The transaction status is filled with codes of the ISO 20022 data table.
+        - 'ACSP': 'AcceptedSettlementInProcess' -
+          All preceding checks such as technical validation and customer profile were successful and therefore the payment initiation has been accepted for execution.
+        - 'ACTC': 'AcceptedTechnicalValidation' -
+          Authentication and syntactical and semantical validation are successful.
+        - 'ACWC': 'AcceptedWithChange' -
+          Instruction is accepted but a change will be made, such as date or remittance not sent.
+        - 'RCVD': 'Received' -
+          Payment initiation has been received by the receiving agent.
+        - 'RJCT': 'Rejected' -
+          Payment initiation or individual transaction included in the payment initiation has been rejected.
+      example: RCVD
+      enum:
+        - ACSC
+        - ACTC
+        - ACWC
+        - RCVD
+        - RJCT
+    BasketPaymentInitResponseList:
+      title: BasketPaymentInitResponseList
+      required:
+        - payments
+      type: object
+      properties:
+        payments:
+          type: array
+          description: ""
+          items:
+            $ref: '#/components/schemas/paymentIdList'
+        transactionStatus:
+          $ref: '#/components/schemas/transactionStatus_SBS'
+    signingBasketResponse-201:
+      type: object
+      properties:
+        transactionStatus:
+          $ref: '#/components/schemas/transactionStatus_SBS'
+        basketId:
+          $ref: '#/components/schemas/basketId'
+        scaMethods:
+          $ref: '#/components/schemas/scaMethods'
+        chosenScaMethod:
+          $ref: '#/components/schemas/chosenScaMethod'
+        challengeData:
+          $ref: '#/components/schemas/challengeData'
+        _links:
+          $ref: '#/components/schemas/_linksSigningBasket'
+        psuMessage:
+          $ref: '#/components/schemas/psuMessageText'
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage2XX'
+      description: Body of the JSON response for a successful create signing basket
+        request.
+    OK_200_SigningBasketStatus:
+      type: object
+      properties:
+        transactionStatus:
+          $ref: '#/components/schemas/transactionStatus_SBS'
+      description: OK
+    signingBasket:
+      type: object
+      properties:
+        paymentIds:
+          $ref: '#/components/schemas/paymentIdList'
+        consentIds:
+          $ref: '#/components/schemas/consentIdList'
+      description: JSON Body of a establish signing basket request. The body shall
+        contain at least one entry.
+    paymentIdList:
+      minItems: 1
+      type: array
+      description: A list of paymentIds
+      items:
+        $ref: '#/components/schemas/paymentId'
+    consentIdList:
+      minItems: 1
+      type: array
+      description: A list of consentIds
+      items:
+        $ref: '#/components/schemas/consentId'
+    paymentId:
+      type: string
+      description: Resource identification of the generated payment initiation resource.
+      example: 1234-wertiq-983
+    consentId:
+      type: string
+      description: ID of the corresponding consent object as returned by an Account
+        Information Consent Request.
+    authenticationObject:
+      title: authenticationObject
+      required:
+        - authenticationMethodId
+        - authenticationType
+      type: object
+      properties:
+        authenticationType:
+          $ref: '#/components/schemas/authenticationType'
+        authenticationVersion:
+          type: string
+          description: |-
+            Depending on the "authenticationType".
+            This version can be used by differentiating authentication tools used within performing OTP generation in the same authentication type.
+            This version can be referred to in the ASPSP?s documentation.
+        authenticationMethodId:
+          maxLength: 35
+          type: string
+          description: An identification provided by the ASPSP for the later identification
+            of the authentication method selection.
+          example: myAuthenticationID
+        name:
+          type: string
+          description: |-
+            This is the name of the authentication method defined by the PSU in the Online Banking frontend of the ASPSP.
+            Alternatively this could be a description provided by the ASPSP like "SMS OTP on phone +49160 xxxxx 28".
+            This name shall be used by the TPP when presenting a list of authentication methods to the PSU, if available.
+          example: SMS OTP on phone +49160 xxxxx 28
+        explanation:
+          type: string
+          description: Detailed information about the SCA method for the PSU.
+          example: Detailed information about the SCA method for the PSU.
+      description: Authentication Object
+    authenticationType:
+      title: authenticationType
+      type: string
+      description: "Type of the authentication method.\n\nMore authentication types\
+        \ might be added during implementation projects and documented in the ASPSP\
+        \ documentation.\n\n  - 'SMS_OTP': An SCA method, where an OTP linked to the\
+        \ transaction to be authorised is sent to the PSU through a SMS channel.\n\
+        \  - 'CHIP_OTP': An SCA method, where an OTP is generated by a chip card,\
+        \ e.g. an TOP derived from an EMV cryptogram. \n    To contact the card, the\
+        \ PSU normally needs a (handheld) device. \n    With this device, the PSU\
+        \ either reads the challenging data through a visual interface like flickering\
+        \ or \n    the PSU types in the challenge through the device key pad. \n \
+        \   The device then derives an OTP from the challenge data and displays the\
+        \ OTP to the PSU.\n  - 'PHOTO_OTP': An SCA method, where the challenge is\
+        \ a QR code or similar encoded visual data \n    which can be read in by a\
+        \ consumer device or specific mobile app. \n    The device resp. the specific\
+        \ app than derives an OTP from the visual challenge data and displays \n \
+        \   the OTP to the PSU.\n  - 'PUSH_OTP': An OTP is pushed to a dedicated authentication\
+        \ APP and displayed to the PSU."
+      example: SMS_OTP
+      enum:
+        - SMS_OTP
+        - CHIP_OTP
+        - PHOTO_OTP
+        - PUSH_OTP
+    challengeData:
+      title: challengeData
+      type: object
+      properties:
+        image:
+          type: string
+          description: |-
+            PNG data (max. 512 kilobyte) to be displayed to the PSU,
+            Base64 encoding, cp. [RFC4648].
+            This attribute is used only, when PHOTO_OTP or CHIP_OTP
+            is the selected SCA method.
+        data:
+          type: string
+          description: String challenge data
+        imageLink:
+          type: string
+          description: A link where the ASPSP will provides the challenge image for
+            the TPP.
+        otpMaxLength:
+          type: integer
+          description: The maximal length for the OTP to be typed in by the PSU.
+          format: int32
+        otpFormat:
+          $ref: '#/components/schemas/OtpFormat'
+        additionalInformation:
+          type: string
+          description: |-
+            Additional explanation for the PSU to explain
+            e.g. fallback mechanism for the chosen SCA method.
+            The TPP is obliged to show this to the PSU.
+      description: |-
+        It is contained in addition to the data element 'chosenScaMethod' if challenge data is needed for SCA.
+        In rare cases this attribute is also used in the context of the 'startAuthorisationWithPsuAuthentication' link.
+    chosenScaMethod:
+      type: object
+      description: |
+        This data element is only contained in the response if the APSPS has chosen the Embedded SCA Approach,
+        if the PSU is already identified e.g. with the first relevant factor or alternatively an access token,
+        if SCA is required and if the authentication method is implicitly selected.
+        $ref: '#/definitions/authenticationObject'
+    scaMethods:
+      type: array
+      description: |
+        This data element might be contained, if SCA is required and if the PSU has a choice between different
+        authentication methods.
+
+        Depending on the risk management of the ASPSP this choice might be offered before or after the PSU
+        has been identified with the first relevant factor, or if an access token is transported.
+
+        If this data element is contained, then there is also an hyperlink of type 'startAuthorisationWithAuthenticationMethodSelection'
+        contained in the response body.
+
+        These methods shall be presented towards the PSU for selection by the TPP.
+      items:
+        $ref: '#/components/schemas/authenticationObject'
+    _linksAll:
+      title: _linksAll
+      type: object
+      properties:
+        scaRedirect:
+          $ref: '#/components/schemas/hrefType'
+        scaOAuth:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisation:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithPsuIdentification:
+          $ref: '#/components/schemas/hrefType'
+        updatePsuIdentification:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithProprietaryData:
+          $ref: '#/components/schemas/hrefType'
+        updateProprietaryData:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithPsuAuthentication:
+          $ref: '#/components/schemas/hrefType'
+        updatePsuAuthentication:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithEncryptedPsuAuthentication:
+          $ref: '#/components/schemas/hrefType'
+        updateEncryptedPsuAuthentication:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithAuthenticationMethodSelection:
+          $ref: '#/components/schemas/hrefType'
+        selectAuthenticationMethod:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithTransactionAuthorisation:
+          $ref: '#/components/schemas/hrefType'
+        authoriseTransaction:
+          $ref: '#/components/schemas/hrefType'
+        self:
+          $ref: '#/components/schemas/hrefType'
+        status:
+          $ref: '#/components/schemas/hrefType'
+        scaStatus:
+          $ref: '#/components/schemas/hrefType'
+        account:
+          $ref: '#/components/schemas/hrefType'
+        balances:
+          $ref: '#/components/schemas/hrefType'
+        transactions:
+          $ref: '#/components/schemas/hrefType'
+        transactionDetails:
+          $ref: '#/components/schemas/hrefType'
+        cardAccount:
+          $ref: '#/components/schemas/hrefType'
+        cardTransactions:
+          $ref: '#/components/schemas/hrefType'
+        first:
+          $ref: '#/components/schemas/hrefType'
+        next:
+          $ref: '#/components/schemas/hrefType'
+        previous:
+          $ref: '#/components/schemas/hrefType'
+        last:
+          $ref: '#/components/schemas/hrefType'
+        download:
+          $ref: '#/components/schemas/hrefType'
+      description: A _link object with all availabel link types
+    _linksStartScaProcess:
+      title: _linksStartScaProcess
+      type: object
+      properties:
+        scaRedirect:
+          $ref: '#/components/schemas/hrefType'
+        scaApp2AppIOS:
+          $ref: '#/components/schemas/hrefType'
+        scaApp2AppAndroid:
+          $ref: '#/components/schemas/hrefType'
+        scaOAuth:
+          $ref: '#/components/schemas/hrefType'
+        updatePsuIdentification:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithPsuAuthentication:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithEncryptedPsuAuthentication:
+          $ref: '#/components/schemas/hrefType'
+        selectAuthenticationMethod:
+          $ref: '#/components/schemas/hrefType'
+        authoriseTransaction:
+          $ref: '#/components/schemas/hrefType'
+        scaStatus:
+          $ref: '#/components/schemas/hrefType'
+      description: |-
+        A list of hyperlinks to be recognised by the TPP. The actual hyperlinks used in the
+        response depend on the dynamical decisions of the ASPSP when processing the request.
+
+        **Remark:** All links can be relative or full links, to be decided by the ASPSP.
+
+        Type of links admitted in this response, (further links might be added for ASPSP defined
+        extensions):
+
+        - 'scaRedirect':
+          In case of an SCA Redirect Approach, the ASPSP is transmitting the link to which to
+          redirect the PSU browser.
+        - 'scaApp2AppIOS':
+          In case of an APP2APP Redirect Approach supported for IOS, the ASPSP is transmitting the deeplink to redirect to.
+        - 'scaApp2AppAndroid':
+          In case of an APP2APP Redirect Approach supported for Android, the ASPSP is transmitting the deeplink to redirect to.
+        - 'scaOAuth':
+          In case of a SCA OAuth2 Approach, the ASPSP is transmitting the URI where the configuration of the Authorisation Server can be retrieved. The configuration follows the OAuth 2.0 Authorisation Server Metadata specification.
+        - 'updatePsuIdentification':
+          The link to the authorisation or cancellation authorisation sub-resource,
+          where PSU identification data needs to be uploaded.
+        - 'startAuthorisationWithPsuAuthentication':
+          The link to the authorisation or cancellation authorisation sub-resource,
+          where PSU authentication data needs to be uploaded.
+          * 'startAuthorisationWithEncryptedPsuAuthentication':
+            Same as startAuthorisactionWithPsuAuthentication where the authentication data need to be encrypted on
+            application layer in uploading.
+        - 'selectAuthenticationMethod':
+          The link to the authorisation or cancellation authorisation sub-resource,
+          where the selected authentication method needs to be uploaded.
+          This link is contained under exactly the same conditions as the data element 'scaMethods'.
+        - 'authoriseTransaction':
+          The link to the authorisation or cancellation authorisation sub-resource,
+          where the authorisation data has to be uploaded, e.g. the TOP received by SMS.
+        - 'scaStatus':
+          The link to retrieve the scaStatus of the corresponding authorisation sub-resource.
+    tppMessageCategory:
+      title: tppMessageCategory
+      type: string
+      description: Category of the TPP message category
+      example: ERROR
+      enum:
+        - ERROR
+        - WARNING
+    MessageCode2XX:
+      title: MessageCode2XX
+      type: string
+      description: Message codes for HTTP Error codes 2XX.
+      example: WARNING
+      enum:
+        - WARNING
+    MessageCode400_PIS:
+      title: MessageCode400_PIS
+      type: string
+      description: Message codes defined for PIS for HTTP Error code 400 (BAD_REQUEST).
+      example: FORMAT_ERROR
+      enum:
+        - FORMAT_ERROR
+        - PARAMETER_NOT_CONSISTENT
+        - PARAMETER_NOT_SUPPORTED
+        - SERVICE_INVALID
+        - RESOURCE_UNKNOWN
+        - RESOURCE_EXPIRED
+        - RESOURCE_BLOCKED
+        - TIMESTAMP_INVALID
+        - PERIOD_INVALID
+        - SCA_METHOD_UNKNOWN
+        - CONSENT_UNKNOWN
+        - PAYMENT_FAILED
+        - EXECUTION_DATE_INVALID
+    MessageCode401_PIS:
+      title: MessageCode401_PIS
+      type: string
+      description: Message codes defined for PIS for HTTP Error code 401 (UNAUTHORIZED).
+      example: CERTIFICATE_INVALID
+      enum:
+        - CERTIFICATE_INVALID
+        - CERTIFICATE_EXPIRED
+        - CERTIFICATE_BLOCKED
+        - CERTIFICATE_REVOKE
+        - CERTIFICATE_MISSING
+        - SIGNATURE_INVALID
+        - SIGNATURE_MISSING
+        - CORPORATE_ID_INVALID
+        - PSU_CREDENTIALS_INVALID
+        - CONSENT_INVALID
+        - CONSENT_EXPIRED
+        - TOKEN_UNKNOWN
+        - TOKEN_INVALID
+        - TOKEN_EXPIRED
+        - REQUIRED_KID_MISSING
+    MessageCode403_PIS:
+      title: MessageCode403_PIS
+      type: string
+      description: Message codes defined defined for PIS for PIS for HTTP Error code
+        403 (FORBIDDEN).
+      example: CONSENT_UNKNOWN
+      enum:
+        - CONSENT_UNKNOWN
+        - SERVICE_BLOCKED
+        - RESOURCE_UNKNOWN
+        - RESOURCE_EXPIRED
+        - PRODUCT_INVALID
+    MessageCode404_PIS:
+      title: MessageCode404_PIS
+      type: string
+      description: Message codes defined for PIS for HTTP Error code 404 (NOT FOUND).
+      example: RESOURCE_UNKNOWN
+      enum:
+        - RESOURCE_UNKNOWN
+        - PRODUCT_UNKNOWN
+    MessageCode405_PIS:
+      title: MessageCode405_PIS
+      type: string
+      description: Message codes defined for payment cancelations PIS for HTTP Error
+        code 405 (METHOD NOT ALLOWED).
+      example: SERVICE_INVALID
+      enum:
+        - SERVICE_INVALID
+    MessageCode405_PIS_CANC:
+      title: MessageCode405_PIS_CANC
+      type: string
+      description: Message codes defined for payment cancelations PIS for HTTP Error
+        code 405 (METHOD NOT ALLOWED).
+      example: CANCELLATION_INVALID
+      enum:
+        - CANCELLATION_INVALID
+        - SERVICE_INVALID
+    MessageCode409_PIS:
+      title: MessageCode409_PIS
+      type: string
+      description: Message codes defined for PIS for HTTP Error code 409 (CONFLICT).
+      example: STATUS_INVALID
+      enum:
+        - STATUS_INVALID
+    MessageCode400_SBS:
+      title: MessageCode400_SBS
+      type: string
+      description: Message codes defined for PIS for HTTP Error code 400 (BAD_REQUEST).
+      example: FORMAT_ERROR
+      enum:
+        - FORMAT_ERROR
+        - PARAMETER_NOT_CONSISTENT
+        - PARAMETER_NOT_SUPPORTED
+        - SERVICE_INVALID
+        - RESOURCE_UNKNOWN
+        - RESOURCE_EXPIRED
+        - RESOURCE_BLOCKED
+        - TIMESTAMP_INVALID
+        - PERIOD_INVALID
+        - SCA_METHOD_UNKNOWN
+        - CONSENT_UNKNOWN
+        - EXECUTION_DATE_INVALID
+    MessageCode401_SBS:
+      title: MessageCode401_SBS
+      type: string
+      description: Message codes defined for PIS for HTTP Error code 401 (UNAUTHORIZED).
+      example: CERTIFICATE_INVALID
+      enum:
+        - CERTIFICATE_INVALID
+        - CERTIFICATE_EXPIRED
+        - CERTIFICATE_BLOCKED
+        - CERTIFICATE_REVOKE
+        - CERTIFICATE_MISSING
+        - SIGNATURE_INVALID
+        - SIGNATURE_MISSING
+        - CORPORATE_ID_INVALID
+        - PSU_CREDENTIALS_INVALID
+        - CONSENT_INVALID
+        - CONSENT_EXPIRED
+        - TOKEN_UNKNOWN
+        - TOKEN_INVALID
+        - TOKEN_EXPIRED
+    MessageCode403_SBS:
+      title: MessageCode403_SBS
+      type: string
+      description: Message codes defined defined for PIS for PIS for HTTP Error code
+        403 (FORBIDDEN).
+      example: CONSENT_UNKNOWN
+      enum:
+        - CONSENT_UNKNOWN
+        - SERVICE_BLOCKED
+        - RESOURCE_UNKNOWN
+        - RESOURCE_EXPIRED
+    MessageCode404_SBS:
+      title: MessageCode404_SBS
+      type: string
+      description: Message codes defined for PIS for HTTP Error code 404 (NOT FOUND).
+      example: RESOURCE_UNKNOWN
+      enum:
+        - RESOURCE_UNKNOWN
+    MessageCode405_SBS:
+      title: MessageCode405_SBS
+      type: string
+      description: Message codes defined for payment cancelations PIS for HTTP Error
+        code 405 (METHOD NOT ALLOWED).
+      example: SERVICE_INVALID
+      enum:
+        - SERVICE_INVALID
+    MessageCode409_SBS:
+      title: MessageCode409_SBS
+      type: string
+      description: Message codes defined for PIS for HTTP Error code 409 (CONFLICT).
+      example: STATUS_INVALID
+      enum:
+        - REFERENCE_STATUS_INVALID
+        - STATUS_INVALID
+    tppMessage2XX:
+      title: tppMessage2XX
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          type: string
+          description: Message codes for HTTP Error codes 2XX.
+          example: WARNING
+          default: WARNING
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage400_PIS:
+      title: tppMessage400_PIS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          $ref: '#/components/schemas/MessageCode400_PIS'
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage401_PIS:
+      title: tppMessage401_PIS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          $ref: '#/components/schemas/MessageCode401_PIS'
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage403_PIS:
+      title: tppMessage403_PIS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          $ref: '#/components/schemas/MessageCode403_PIS'
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage404_PIS:
+      title: tppMessage404_PIS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          $ref: '#/components/schemas/MessageCode404_PIS'
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage405_PIS:
+      title: tppMessage405_PIS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          type: string
+          description: Message codes defined for payment cancelations PIS for HTTP
+            Error code 405 (METHOD NOT ALLOWED).
+          example: SERVICE_INVALID
+          default: SERVICE_INVALID
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage405_PIS_CANC:
+      title: tppMessage405_PIS_CANC
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          $ref: '#/components/schemas/MessageCode405_PIS_CANC'
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage409_PIS:
+      title: tppMessage409_PIS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          type: string
+          description: Message codes defined for PIS for HTTP Error code 409 (CONFLICT).
+          example: STATUS_INVALID
+          default: STATUS_INVALID
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage400_SBS:
+      title: tppMessage400_SBS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          $ref: '#/components/schemas/MessageCode400_SBS'
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage401_SBS:
+      title: tppMessage401_SBS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          $ref: '#/components/schemas/MessageCode401_SBS'
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage403_SBS:
+      title: tppMessage403_SBS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          $ref: '#/components/schemas/MessageCode403_SBS'
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage404_SBS:
+      title: tppMessage404_SBS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          $ref: '#/components/schemas/MessageCode404_SBS'
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage405_SBS:
+      title: tppMessage405_SBS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          $ref: '#/components/schemas/MessageCode405_SBS'
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage409_SBS:
+      title: tppMessage409_SBS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          $ref: '#/components/schemas/MessageCode409_SBS'
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    Error400_PIS:
+      title: Error400_PIS
+      required:
+        - code
+        - type
+      type: object
+      properties:
+        type:
+          maxLength: 70
+          type: string
+          description: "A URI reference [RFC3986] that identifies the problem type.\
+            \ \nRemark For Future: These URI will be provided by NextGenPSD2 in future."
+        title:
+          maxLength: 70
+          type: string
+          description: "Short human readable description of error type. \nCould be\
+            \ in local language. \nTo be provided by ASPSPs."
+        detail:
+          maxLength: 512
+          type: string
+          description: "Detailed human readable text specific to this instance of\
+            \ the error. \nXPath might be used to point to the issue generating the\
+            \ error in addition.\nRemark for Future: In future, a dedicated field\
+            \ might be introduced for the XPath."
+        code:
+          $ref: '#/components/schemas/MessageCode400_PIS'
+        additionalErrors:
+          type: array
+          description: |-
+            Array of Error Information Blocks.
+
+            Might be used if more than one error is to be communicated
+          items:
+            $ref: '#/components/schemas/AdditionalError'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: "Standardised definition of reporting error information according\
+        \ to [RFC7807] \nin case of a HTTP error code 400 for PIS."
+    Error401_PIS:
+      title: Error401_PIS
+      required:
+        - code
+        - type
+      type: object
+      properties:
+        type:
+          maxLength: 70
+          type: string
+          description: "A URI reference [RFC3986] that identifies the problem type.\
+            \ \nRemark For Future: These URI will be provided by NextGenPSD2 in future."
+        title:
+          maxLength: 70
+          type: string
+          description: "Short human readable description of error type. \nCould be\
+            \ in local language. \nTo be provided by ASPSPs."
+        detail:
+          maxLength: 512
+          type: string
+          description: "Detailed human readable text specific to this instance of\
+            \ the error. \nXPath might be used to point to the issue generating the\
+            \ error in addition.\nRemark for Future: In future, a dedicated field\
+            \ might be introduced for the XPath."
+        code:
+          $ref: '#/components/schemas/MessageCode401_PIS'
+        additionalErrors:
+          type: array
+          description: |-
+            Array of Error Information Blocks.
+
+            Might be used if more than one error is to be communicated
+          items:
+            $ref: '#/components/schemas/AdditionalError1'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: "Standardised definition of reporting error information according\
+        \ to [RFC7807] \nin case of a HTTP error code 401 for PIS."
+    Error403_PIS:
+      title: Error403_PIS
+      required:
+        - code
+        - type
+      type: object
+      properties:
+        type:
+          maxLength: 70
+          type: string
+          description: "A URI reference [RFC3986] that identifies the problem type.\
+            \ \nRemark For Future: These URI will be provided by NextGenPSD2 in future."
+        title:
+          maxLength: 70
+          type: string
+          description: "Short human readable description of error type. \nCould be\
+            \ in local language. \nTo be provided by ASPSPs."
+        detail:
+          maxLength: 512
+          type: string
+          description: "Detailed human readable text specific to this instance of\
+            \ the error. \nXPath might be used to point to the issue generating the\
+            \ error in addition.\nRemark for Future: In future, a dedicated field\
+            \ might be introduced for the XPath."
+        code:
+          $ref: '#/components/schemas/MessageCode403_PIS'
+        additionalErrors:
+          type: array
+          description: |-
+            Array of Error Information Blocks.
+
+            Might be used if more than one error is to be communicated
+          items:
+            $ref: '#/components/schemas/AdditionalError2'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: "Standardised definition of reporting error information according\
+        \ to [RFC7807] \nin case of a HTTP error code 403 for PIS."
+    Error404_PIS:
+      title: Error404_PIS
+      required:
+        - code
+        - type
+      type: object
+      properties:
+        type:
+          maxLength: 70
+          type: string
+          description: "A URI reference [RFC3986] that identifies the problem type.\
+            \ \nRemark For Future: These URI will be provided by NextGenPSD2 in future."
+        title:
+          maxLength: 70
+          type: string
+          description: "Short human readable description of error type. \nCould be\
+            \ in local language. \nTo be provided by ASPSPs."
+        detail:
+          maxLength: 512
+          type: string
+          description: "Detailed human readable text specific to this instance of\
+            \ the error. \nXPath might be used to point to the issue generating the\
+            \ error in addition.\nRemark for Future: In future, a dedicated field\
+            \ might be introduced for the XPath."
+        code:
+          $ref: '#/components/schemas/MessageCode404_PIS'
+        additionalErrors:
+          type: array
+          description: |-
+            Array of Error Information Blocks.
+
+            Might be used if more than one error is to be communicated
+          items:
+            $ref: '#/components/schemas/AdditionalError3'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: "Standardised definition of reporting error information according\
+        \ to [RFC7807] \nin case of a HTTP error code 404 for PIS."
+    Error405_PIS:
+      title: Error405_PIS
+      required:
+        - code
+        - type
+      type: object
+      properties:
+        type:
+          maxLength: 70
+          type: string
+          description: "A URI reference [RFC3986] that identifies the problem type.\
+            \ \nRemark For Future: These URI will be provided by NextGenPSD2 in future."
+        title:
+          maxLength: 70
+          type: string
+          description: "Short human readable description of error type. \nCould be\
+            \ in local language. \nTo be provided by ASPSPs."
+        detail:
+          maxLength: 512
+          type: string
+          description: "Detailed human readable text specific to this instance of\
+            \ the error. \nXPath might be used to point to the issue generating the\
+            \ error in addition.\nRemark for Future: In future, a dedicated field\
+            \ might be introduced for the XPath."
+        code:
+          type: string
+          description: Message codes defined for payment cancelations PIS for HTTP
+            Error code 405 (METHOD NOT ALLOWED).
+          example: SERVICE_INVALID
+          default: SERVICE_INVALID
+        additionalErrors:
+          type: array
+          description: |-
+            Array of Error Information Blocks.
+
+            Might be used if more than one error is to be communicated
+          items:
+            $ref: '#/components/schemas/AdditionalError4'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: "Standardised definition of reporting error information according\
+        \ to [RFC7807] \nin case of a HTTP error code 405 for PIS."
+    Error405_PIS_CANC:
+      title: Error405_PIS_CANC
+      required:
+        - code
+        - type
+      type: object
+      properties:
+        type:
+          maxLength: 70
+          type: string
+          description: "A URI reference [RFC3986] that identifies the problem type.\
+            \ \nRemark For Future: These URI will be provided by NextGenPSD2 in future."
+        title:
+          maxLength: 70
+          type: string
+          description: "Short human readable description of error type. \nCould be\
+            \ in local language. \nTo be provided by ASPSPs."
+        detail:
+          maxLength: 512
+          type: string
+          description: "Detailed human readable text specific to this instance of\
+            \ the error. \nXPath might be used to point to the issue generating the\
+            \ error in addition.\nRemark for Future: In future, a dedicated field\
+            \ might be introduced for the XPath."
+        code:
+          $ref: '#/components/schemas/MessageCode405_PIS_CANC'
+        additionalErrors:
+          type: array
+          description: |-
+            Array of Error Information Blocks.
+
+            Might be used if more than one error is to be communicated
+          items:
+            $ref: '#/components/schemas/AdditionalError5'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: "Standardised definition of reporting error information according\
+        \ to [RFC7807] \nin case of a HTTP error code 405 for a pament cancelation\
+        \ (PIS)."
+    Error409_PIS:
+      title: Error409_PIS
+      required:
+        - code
+        - type
+      type: object
+      properties:
+        type:
+          maxLength: 70
+          type: string
+          description: "A URI reference [RFC3986] that identifies the problem type.\
+            \ \nRemark For Future: These URI will be provided by NextGenPSD2 in future."
+        title:
+          maxLength: 70
+          type: string
+          description: "Short human readable description of error type. \nCould be\
+            \ in local language. \nTo be provided by ASPSPs."
+        detail:
+          maxLength: 512
+          type: string
+          description: "Detailed human readable text specific to this instance of\
+            \ the error. \nXPath might be used to point to the issue generating the\
+            \ error in addition.\nRemark for Future: In future, a dedicated field\
+            \ might be introduced for the XPath."
+        code:
+          type: string
+          description: Message codes defined for PIS for HTTP Error code 409 (CONFLICT).
+          example: STATUS_INVALID
+          default: STATUS_INVALID
+        additionalErrors:
+          type: array
+          description: |-
+            Array of Error Information Blocks.
+
+            Might be used if more than one error is to be communicated
+          items:
+            $ref: '#/components/schemas/AdditionalError6'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: "Standardised definition of reporting error information according\
+        \ to [RFC7807] \nin case of a HTTP error code 409 for PIS."
+    Error400_NG_PIS:
+      title: Error400_NG_PIS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage400_PIS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: |
+        NextGenPSD2 specific definition of reporting error information in case of a HTTP error code 400.
+    Error401_NG_PIS:
+      title: Error401_NG_PIS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage401_PIS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: |
+        NextGenPSD2 specific definition of reporting error information in case of a HTTP error code 401.
+    Error403_NG_PIS:
+      title: Error403_NG_PIS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage403_PIS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: |
+        NextGenPSD2 specific definition of reporting error information in case of a HTTP error code 403.
+    Error404_NG_PIS:
+      title: Error404_NG_PIS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage404_PIS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: |
+        NextGenPSD2 specific definition of reporting error information in case of a HTTP error code 404.
+    Error405_NG_PIS:
+      title: Error405_NG_PIS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage405_PIS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: |
+        NextGenPSD2 specific definition of reporting error information in case of a HTTP error code 405.
+    Error405_NG_PIS_CANC:
+      title: Error405_NG_PIS_CANC
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage405_PIS_CANC'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: |
+        NextGenPSD2 specific definition of reporting error information in case of a HTTP error code 401.
+    Error409_NG_PIS:
+      title: Error409_NG_PIS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage409_PIS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: NextGenPSD2 specific definition of reporting error information
+        in case of a HTTP error code 409.
+    Error400_NG_SBS:
+      title: Error400_NG_SBS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage400_SBS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: |
+        NextGenPSD2 specific definition of reporting error information in case of a HTTP error code 400.
+    Error401_NG_SBS:
+      title: Error401_NG_SBS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage401_SBS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: |
+        NextGenPSD2 specific definition of reporting error information in case of a HTTP error code 401.
+    Error403_NG_SBS:
+      title: Error403_NG_SBS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage403_SBS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: |
+        NextGenPSD2 specific definition of reporting error information in case of a HTTP error code 403.
+    Error404_NG_SBS:
+      title: Error404_NG_SBS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage404_SBS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: |
+        NextGenPSD2 specific definition of reporting error information in case of a HTTP error code 404.
+    Error405_NG_SBS:
+      title: Error405_NG_SBS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage405_SBS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: |
+        NextGenPSD2 specific definition of reporting error information in case of a HTTP error code 405.
+    Error409_NG_SBS:
+      title: Error409_NG_SBS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage409_SBS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: |
+        NextGenPSD2 specific definition of reporting error information in case of a HTTP error code 401.
+    AdditionalError:
+      title: AdditionalError
+      required:
+        - code
+      type: object
+      properties:
+        title:
+          maxLength: 70
+          type: string
+          description: "Short human readable description of error type. \nCould be\
+            \ in local language. \nTo be provided by ASPSPs."
+        detail:
+          maxLength: 512
+          type: string
+          description: "Detailed human readable text specific to this instance of\
+            \ the error. \nXPath might be used to point to the issue generating the\
+            \ error in addition.\nRemark for Future: In future, a dedicated field\
+            \ might be introduced for the XPath."
+        code:
+          $ref: '#/components/schemas/MessageCode400_PIS'
+      description: This is a data element to support the declaration of additional
+        errors in the context of [RFC7807].
+    AdditionalError1:
+      title: AdditionalError1
+      required:
+        - code
+      type: object
+      properties:
+        title:
+          maxLength: 70
+          type: string
+          description: "Short human readable description of error type. \nCould be\
+            \ in local language. \nTo be provided by ASPSPs."
+        detail:
+          maxLength: 512
+          type: string
+          description: "Detailed human readable text specific to this instance of\
+            \ the error. \nXPath might be used to point to the issue generating the\
+            \ error in addition.\nRemark for Future: In future, a dedicated field\
+            \ might be introduced for the XPath."
+        code:
+          $ref: '#/components/schemas/MessageCode401_PIS'
+      description: This is a data element to support the declaration of additional
+        errors in the context of [RFC7807].
+    AdditionalError2:
+      title: AdditionalError2
+      required:
+        - code
+      type: object
+      properties:
+        title:
+          maxLength: 70
+          type: string
+          description: "Short human readable description of error type. \nCould be\
+            \ in local language. \nTo be provided by ASPSPs."
+        detail:
+          maxLength: 512
+          type: string
+          description: "Detailed human readable text specific to this instance of\
+            \ the error. \nXPath might be used to point to the issue generating the\
+            \ error in addition.\nRemark for Future: In future, a dedicated field\
+            \ might be introduced for the XPath."
+        code:
+          $ref: '#/components/schemas/MessageCode403_PIS'
+      description: This is a data element to support the declaration of additional
+        errors in the context of [RFC7807].
+    AdditionalError3:
+      title: AdditionalError3
+      required:
+        - code
+      type: object
+      properties:
+        title:
+          maxLength: 70
+          type: string
+          description: "Short human readable description of error type. \nCould be\
+            \ in local language. \nTo be provided by ASPSPs."
+        detail:
+          maxLength: 512
+          type: string
+          description: "Detailed human readable text specific to this instance of\
+            \ the error. \nXPath might be used to point to the issue generating the\
+            \ error in addition.\nRemark for Future: In future, a dedicated field\
+            \ might be introduced for the XPath."
+        code:
+          $ref: '#/components/schemas/MessageCode404_PIS'
+      description: This is a data element to support the declaration of additional
+        errors in the context of [RFC7807].
+    AdditionalError4:
+      title: AdditionalError4
+      required:
+        - code
+      type: object
+      properties:
+        title:
+          maxLength: 70
+          type: string
+          description: "Short human readable description of error type. \nCould be\
+            \ in local language. \nTo be provided by ASPSPs."
+        detail:
+          maxLength: 512
+          type: string
+          description: "Detailed human readable text specific to this instance of\
+            \ the error. \nXPath might be used to point to the issue generating the\
+            \ error in addition.\nRemark for Future: In future, a dedicated field\
+            \ might be introduced for the XPath."
+        code:
+          type: string
+          description: Message codes defined for payment cancelations PIS for HTTP
+            Error code 405 (METHOD NOT ALLOWED).
+          example: SERVICE_INVALID
+          default: SERVICE_INVALID
+      description: This is a data element to support the declaration of additional
+        errors in the context of [RFC7807].
+    AdditionalError5:
+      title: AdditionalError5
+      required:
+        - code
+      type: object
+      properties:
+        title:
+          maxLength: 70
+          type: string
+          description: "Short human readable description of error type. \nCould be\
+            \ in local language. \nTo be provided by ASPSPs."
+        detail:
+          maxLength: 512
+          type: string
+          description: "Detailed human readable text specific to this instance of\
+            \ the error. \nXPath might be used to point to the issue generating the\
+            \ error in addition.\nRemark for Future: In future, a dedicated field\
+            \ might be introduced for the XPath."
+        code:
+          $ref: '#/components/schemas/MessageCode405_PIS_CANC'
+      description: This is a data element to support the declaration of additional
+        errors in the context of [RFC7807].
+    AdditionalError6:
+      title: AdditionalError6
+      required:
+        - code
+      type: object
+      properties:
+        title:
+          maxLength: 70
+          type: string
+          description: "Short human readable description of error type. \nCould be\
+            \ in local language. \nTo be provided by ASPSPs."
+        detail:
+          maxLength: 512
+          type: string
+          description: "Detailed human readable text specific to this instance of\
+            \ the error. \nXPath might be used to point to the issue generating the\
+            \ error in addition.\nRemark for Future: In future, a dedicated field\
+            \ might be introduced for the XPath."
+        code:
+          type: string
+          description: Message codes defined for PIS for HTTP Error code 409 (CONFLICT).
+          example: STATUS_INVALID
+          default: STATUS_INVALID
+      description: This is a data element to support the declaration of additional
+        errors in the context of [RFC7807].
+    OtpFormat:
+      title: OtpFormat
+      type: string
+      description: The format type of the OTP to be typed in. The admitted values
+        are "characters" or "integer".
+      example: characters
+      enum:
+        - characters
+        - integer
+    hrefType:
+      type: object
+      properties:
+        href:
+          $ref: '#/components/schemas/hrefEntry'
+      description: Link to a resource
+    hrefEntry:
+      type: string
+      description: Link to a resource
+      example: /v1/payments/sepa-credit-transfers/1234-wertiq-983
+    scaStatusResponse:
+      title: scaStatusResponse
+      type: object
+      properties:
+        scaStatus:
+          $ref: '#/components/schemas/scaStatus'
+      description: Body of the JSON response with SCA Status
+    scaStatus:
+      title: scaStatus
+      type: string
+      description: "This data element is containing information about the status of\
+        \ the SCA method applied. \n\nThe following codes are defined for this data\
+        \ type.\n\n  * 'received':\n    An authorisation or cancellation-authorisation\
+        \ resource has been created successfully.\n  * 'psuIdentified':\n    The PSU\
+        \ related to the authorisation or cancellation-authorisation resource has\
+        \ been identified.\n  * 'psuAuthenticated':\n    The PSU related to the authorisation\
+        \ or cancellation-authorisation resource has been identified and authenticated\
+        \ e.g. by a password or by an access token.\n  * 'scaMethodSelected':\n  \
+        \  The PSU/TPP has selected the related SCA routine. \n    If the SCA method\
+        \ is chosen implicitly since only one SCA method is available, \n    then\
+        \ this is the first status to be reported instead of 'received'.\n  * 'started':\n\
+        \    The addressed SCA routine has been started.\n  * 'finalised':\n    The\
+        \ SCA routine has been finalised successfully.\n  * 'failed':\n    The SCA\
+        \ routine failed\n  * 'exempted':\n    SCA was exempted for the related transaction,\
+        \ the related authorisation is successful."
+      example: received
+      enum:
+        - received
+        - psuIdentified
+        - psuAuthenticated
+        - scaMethodSelected
+        - started
+        - finalised
+        - failed
+        - exempted
+    authorisations:
+      title: authorisations
+      required:
+        - authorisationIds
+      type: object
+      properties:
+        authorisationIds:
+          type: array
+          description: An array of all authorisationIds
+          items:
+            type: string
+      description: An array of all authorisationIds
+    startScaprocessResponse:
+      title: startScaprocessResponse
+      required:
+        - _links
+        - authorisationId
+        - scaStatus
+      type: object
+      properties:
+        scaStatus:
+          $ref: '#/components/schemas/scaStatus'
+        authorisationId:
+          type: string
+          description: Resource identification of the related SCA
+          example: 123auth456
+        scaMethods:
+          type: array
+          description: |-
+            This data element might be contained, if SCA is required and if the PSU has a choice between different
+            authentication methods.
+
+            Depending on the risk management of the ASPSP this choice might be offered before or after the PSU
+            has been identified with the first relevant factor, or if an access token is transported.
+
+            If this data element is contained, then there is also an hyperlink of type 'startAuthorisationWithAuthenticationMethodSelection'
+            contained in the response body.
+
+            These methods shall be presented towards the PSU for selection by the TPP.
+          items:
+            $ref: '#/components/schemas/authenticationObject'
+        chosenScaMethod:
+          $ref: '#/components/schemas/authenticationObject'
+        challengeData:
+          $ref: '#/components/schemas/challengeData'
+        _links:
+          $ref: '#/components/schemas/_linksStartScaProcess'
+        psuMessage:
+          maxLength: 512
+          type: string
+          description: Text to be displayed to the PSU
+      description: Body of the JSON response for a Start SCA authorisation request.
+  securitySchemes:
+    clientIdHeader:
+      type: apiKey
+      name: client_id
+      in: header
+  parameters:
+    PSU-IP-Address:
+      name: PSU-IP-Address
+      in: header
+      description: The forwarded IP Address header field consists of the corresponding
+        http request IP Address field between PSU and TPP.
+      required: true
+      schema:
+        type: string
+        format: ipv4
+      example: '192.168.8.78'
+    digest:
+      name: Digest
+      in: header
+      description: |-
+        The digest is a base64 encoded hash of the body.
+        Hash the body of your request (or an empty string if there is no body) using the SHA-256 algorithm.
+        Base64 encode the output and add the result to your Digest header, specifying the hashing algorithm used.
+      schema:
+        type: string
+      example: SHA-256=ZuYiOtZkVxhjWmwTO5lOpsPevUNMezvk6dfb6fVhebM=
+    signature:
+      name: Signature
+      in: header
+      description: |-
+        A signature of the request by the TPP at the application level. This might be mandated by the ASPSP. 
+        The signature is a list of headers with their signed values. Any header can be used in the signature (including the `Digest` header), with the exception of the `client_id` header. 
+        To sign the `client_id` header, its name should be treated as `clientId`.
+        First, prepare the headers in the format of "header name: header value" with a line separator, e.g.,
+        ```
+        Digest: SHA-256=ZuYiOtZkVxhjWmwTO5lOpsPevUNMezvk6dfb6fVhebM=
+        clientId: WmwTO5lOpsPevUNMezvk6df
+        ```
+        Then, sign this string using your private key and hash it with SHA-256 using RSA.
+        Finally, base64 encode the resulting value. The `Signature` header should include the `keyId`, `algorithm="rsa-sha256"`, `headers` list, and the base64 encoded signature.
+      example: |-
+        keyId="SN=9FA1,CA=D-TRUST%20CA%202-1%202015,O=D-Trust%20GmbH,C=DE",algorithm="rsa-sha256",
+        headers="Digest clientId",
+        signature="Base64(RSA-SHA256(signing string))"
+      schema:
+        type: string
+    tpp-signature-certificate:
+      name: TPP-Signature-Certificate
+      in: header
+      description: |-
+        The certificate used for signing the request, in base64 encoding.
+        Must be included if a signature is present. The request must be signed with your QSEAL certificate.
+        The algorithm used for the signature must be RSA-SHA256. If this header is present, the `Signature` and `Digest` headers must also be provided.
+      schema:
+        type: string
+      example: MIIHXTCCBUWgAwIBAgIMIgFezw5y5yKRhs9TMA0GCSqGSIb3DQEBCwUAMGUxCzACORgEBMBMGBgQAjkYBBjAJBgcEAI5GAQYCMDQGBgQAjkYBBTAqMCgWImh0dHBzOi8vd3d3LmNlcnRzaWduLnJvL3JlcG9z...

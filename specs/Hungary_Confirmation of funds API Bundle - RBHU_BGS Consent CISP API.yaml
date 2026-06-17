@@ -1,0 +1,1573 @@
+openapi: 3.0.1
+x-kong-name: psd2-bgs-consent-cisp-api-200
+info:
+  title: BGS Consent CISP API
+  description: Managing Consent to the access to the CISP section
+  version: 2.0.0.0
+servers:
+  - url: https://hu-api-sandbox.raiffeisen.hu/rbhu/prod02/psd2-bgs-consent-cisp-api-2.0.0/v2
+security:
+  - clientIdHeader: []
+paths:
+  /consents/confirmation-of-funds:
+    post:
+      tags:
+        - Confirmation Of Funds
+      description: This method creates a confirmation of funds consent resource at
+        the ASPSP regarding confirmation of funds access to an account specified in
+        this request.
+      operationId: createConsentConfirmationOfFunds
+      x-kong-plugin-request-validator:
+        enabled: true
+      parameters:
+        - $ref: '#/components/parameters/X-Request-ID'
+        - $ref: '#/components/parameters/Digest'
+        - $ref: '#/components/parameters/Signature'
+        - $ref: '#/components/parameters/TPP-Signature-Certificate'
+        - $ref: '#/components/parameters/PSU-ID'
+        - $ref: '#/components/parameters/PSU-ID-Type'
+        - $ref: '#/components/parameters/PSU-Corporate-ID'
+        - $ref: '#/components/parameters/PSU-Corporate-ID-Type'
+        - $ref: '#/components/parameters/TPP-Redirect-Preferred'
+        - $ref: '#/components/parameters/TPP-Redirect-URI'
+        - $ref: '#/components/parameters/TPP-Nok-Redirect-URI'
+        - $ref: '#/components/parameters/TPP-Explicit-Authorisation-Preferred'
+        - $ref: '#/components/parameters/PSU-IP-Address_conditionalForAis'
+        - $ref: '#/components/parameters/PSU-IP-Port'
+        - $ref: '#/components/parameters/PSU-Accept'
+        - $ref: '#/components/parameters/PSU-Accept-Charset'
+        - $ref: '#/components/parameters/PSU-Accept-Encoding'
+        - $ref: '#/components/parameters/PSU-Accept-Language'
+        - $ref: '#/components/parameters/PSU-User-Agent'
+        - $ref: '#/components/parameters/PSU-Http-Method'
+        - $ref: '#/components/parameters/PSU-Device-ID'
+        - $ref: '#/components/parameters/PSU-Geo-Location'
+      requestBody:
+        description: Requestbody for a consent confirmation of funds request.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/XS2A_Berlin_ConsentsConfirmationOfFunds'
+        required: false
+      responses:
+        201:
+          description: Created
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            ASPSP-SCA-Approach:
+              schema:
+                type: string
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Create_Consent_Response'
+        400:
+          description: Bad Request
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400_NG_CIS'
+        401:
+          description: Unauthorized
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error401_NG_CIS'
+        403:
+          description: Forbidden
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403_NG_CIS'
+        404:
+          description: Not Found
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error404_NG_CIS'
+        405:
+          description: Method Not Allowed
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error405_NG_CIS'
+        406:
+          description: Not Acceptable
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error406_NG_CIS'
+        408:
+          description: Request Timeout
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        409:
+          description: Conflict
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error409_NG_CIS'
+        415:
+          description: Unsupported Media Type
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        429:
+          description: Too Many Requests
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error429_NG_CIS'
+        500:
+          description: Internal Server Error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        503:
+          description: Service Unavailable
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+      x-codegen-request-body-name: body
+  /consents/confirmation-of-funds/{consentId}/status:
+    get:
+      tags:
+        - Confirmation Of Funds
+      description: Can check the status of an account information consent resource.
+      operationId: getStatusConsentConfirmationOfFunds
+      x-kong-plugin-request-validator:
+        enabled: true
+      parameters:
+        - $ref: '#/components/parameters/X-Request-ID'
+        - $ref: '#/components/parameters/consentId'
+        - $ref: '#/components/parameters/Digest'
+        - $ref: '#/components/parameters/Signature'
+        - $ref: '#/components/parameters/TPP-Signature-Certificate'
+        - $ref: '#/components/parameters/PSU-IP-Address_conditionalForAis'
+        - $ref: '#/components/parameters/PSU-IP-Port'
+        - $ref: '#/components/parameters/PSU-Accept'
+        - $ref: '#/components/parameters/PSU-Accept-Charset'
+        - $ref: '#/components/parameters/PSU-Accept-Encoding'
+        - $ref: '#/components/parameters/PSU-Accept-Language'
+        - $ref: '#/components/parameters/PSU-User-Agent'
+        - $ref: '#/components/parameters/PSU-Http-Method'
+        - $ref: '#/components/parameters/PSU-Device-ID'
+        - $ref: '#/components/parameters/PSU-Geo-Location'
+      responses:
+        200:
+          description: Get consent status
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Consent_Status_Response'
+        400:
+          description: Bad Request
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        401:
+          description: Unauthorized
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        403:
+          description: Forbidden
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        404:
+          description: Not Found
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        405:
+          description: Method Not Allowed
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        406:
+          description: Not Acceptable
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        408:
+          description: Request Timeout
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        409:
+          description: Conflict
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        415:
+          description: Unsupported Media Type
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        429:
+          description: Too Many Requests
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        500:
+          description: Internal Server Error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+  /consents/confirmation-of-funds/{consentId}:
+    get:
+      tags:
+        - Confirmation Of Funds
+      description: |
+        Returns the content of an account information consent object.
+      operationId: getConsentConfirmationOfFunds
+      x-kong-plugin-request-validator:
+        enabled: true
+      parameters:
+        - $ref: '#/components/parameters/X-Request-ID'
+        - $ref: '#/components/parameters/consentId'
+        - $ref: '#/components/parameters/Digest'
+        - $ref: '#/components/parameters/Signature'
+        - $ref: '#/components/parameters/TPP-Signature-Certificate'
+        - $ref: '#/components/parameters/PSU-IP-Address_conditionalForAis'
+        - $ref: '#/components/parameters/PSU-IP-Port'
+        - $ref: '#/components/parameters/PSU-Accept'
+        - $ref: '#/components/parameters/PSU-Accept-Charset'
+        - $ref: '#/components/parameters/PSU-Accept-Encoding'
+        - $ref: '#/components/parameters/PSU-Accept-Language'
+        - $ref: '#/components/parameters/PSU-User-Agent'
+        - $ref: '#/components/parameters/PSU-Http-Method'
+        - $ref: '#/components/parameters/PSU-Device-ID'
+        - $ref: '#/components/parameters/PSU-Geo-Location'
+      responses:
+        200:
+          description: Get consent details
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_ConsentConfirmationOfFundsContentResponse'
+        400:
+          description: Bad Request
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        401:
+          description: Unauthorized
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        403:
+          description: Forbidden
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        404:
+          description: Not Found
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        405:
+          description: Method Not Allowed
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        406:
+          description: Not Acceptable
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        408:
+          description: Request Timeout
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        409:
+          description: Conflict
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        415:
+          description: Unsupported Media Type
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        429:
+          description: Too Many Requests
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        500:
+          description: Internal Server Error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+    delete:
+      tags:
+        - Confirmation Of Funds
+      description: Deletes a given consent.
+      operationId: deleteConsentConfirmationOfFunds
+      x-kong-plugin-request-validator:
+        enabled: true
+      parameters:
+        - $ref: '#/components/parameters/X-Request-ID'
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/consentId'
+        - $ref: '#/components/parameters/Digest'
+        - $ref: '#/components/parameters/Signature'
+        - $ref: '#/components/parameters/TPP-Signature-Certificate'
+        - $ref: '#/components/parameters/PSU-IP-Address_conditionalForAis'
+        - $ref: '#/components/parameters/PSU-IP-Port'
+        - $ref: '#/components/parameters/PSU-Accept'
+        - $ref: '#/components/parameters/PSU-Accept-Charset'
+        - $ref: '#/components/parameters/PSU-Accept-Encoding'
+        - $ref: '#/components/parameters/PSU-Accept-Language'
+        - $ref: '#/components/parameters/PSU-User-Agent'
+        - $ref: '#/components/parameters/PSU-Http-Method'
+        - $ref: '#/components/parameters/PSU-Device-ID'
+        - $ref: '#/components/parameters/PSU-Geo-Location'
+      responses:
+        204:
+          description: Deletes a given consent.
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content: {}
+        400:
+          description: Bad Request
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        401:
+          description: Unauthorized
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        403:
+          description: Forbidden
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        404:
+          description: Not Found
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        405:
+          description: Method Not Allowed
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        406:
+          description: Not Acceptable
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        408:
+          description: Request Timeout
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        409:
+          description: Conflict
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Location:
+              description: Location of the created resource.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        415:
+          description: Unsupported Media Type
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        429:
+          description: Too Many Requests
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        500:
+          description: Internal Server Error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+components:
+  schemas:
+    XS2A_Berlin_ConsentsConfirmationOfFunds:
+      required:
+        - account
+      type: object
+      properties:
+        account:
+          $ref: '#/components/schemas/accountReference'
+        cardNumber:
+          $ref: '#/components/schemas/cardNumber'
+        cardExpiryDate:
+          $ref: '#/components/schemas/cardExpiryDate'
+        cardInformation:
+          $ref: '#/components/schemas/cardInformation'
+        registrationInformation:
+          $ref: '#/components/schemas/registrationInformation'
+      description: Content of the body of a consent confirmation of funds request.
+    XS2A_Berlin_ConsentConfirmationOfFundsContentResponse:
+      required:
+        - account
+        - consentStatus
+      type: object
+      properties:
+        account:
+          $ref: '#/components/schemas/accountReference'
+        cardNumber:
+          $ref: '#/components/schemas/cardNumber'
+        cardExpiryDate:
+          $ref: '#/components/schemas/cardExpiryDate'
+        cardInformation:
+          $ref: '#/components/schemas/cardInformation'
+        registrationInformation:
+          $ref: '#/components/schemas/registrationInformation'
+        consentStatus:
+          $ref: '#/components/schemas/XS2A_Berlin_Consent_Status'
+      description: Body of the JSON response for a confirmation of funds content request.
+    XS2A_Berlin_Consent_Status_Response:
+      required:
+        - consentStatus
+      type: object
+      properties:
+        consentStatus:
+          $ref: '#/components/schemas/XS2A_Berlin_Consent_Status'
+    XS2A_Berlin_Create_Consent_Response:
+      required:
+        - _links
+        - consentStatus
+      type: object
+      properties:
+        consentStatus:
+          $ref: '#/components/schemas/XS2A_Berlin_Consent_Status'
+        consentId:
+          type: string
+          description: Identification of the consent resource as it is used in the
+            API structure. Shall be contained, if a consent resource was generated.
+        scaMethods:
+          type: array
+          items:
+            $ref: '#/components/schemas/XS2A_Sca_Methods'
+        _links:
+          $ref: '#/components/schemas/XS2A_Berlin_Links'
+    XS2A_Sca_Methods:
+      type: array
+      description: |-
+        This data element might be contained, if SCA is required and if the PSU has a choice between different
+        authentication methods.
+
+        Depending on the risk management of the ASPSP this choice might be offered before or after the PSU
+        has been identified with the first relevant factor, or if an access token is transported.
+
+        If this data element is contained, then there is also an hyperlink of type 'startAuthorisationWithAuthenticationMethodSelection'
+        contained in the response body.
+
+        These methods shall be presented towards the PSU for selection by the TPP.
+      items:
+        $ref: '#/components/schemas/authenticationObject'
+    authenticationObject:
+      title: authenticationObject
+      required:
+        - authenticationMethodId
+        - authenticationType
+      type: object
+      properties:
+        authenticationType:
+          $ref: '#/components/schemas/authenticationType'
+        authenticationVersion:
+          type: string
+          description: |-
+            Depending on the "authenticationType".
+            This version can be used by differentiating authentication tools used within performing OTP generation in the same authentication type.
+            This version can be referred to in the ASPSP?s documentation.
+        authenticationMethodId:
+          maxLength: 35
+          type: string
+          description: An identification provided by the ASPSP for the later identification
+            of the authentication method selection.
+          example: myAuthenticationID
+        name:
+          type: string
+          description: |-
+            This is the name of the authentication method defined by the PSU in the Online Banking frontend of the ASPSP.
+            Alternatively this could be a description provided by the ASPSP like "SMS OTP on phone +49160 xxxxx 28".
+            This name shall be used by the TPP when presenting a list of authentication methods to the PSU, if available.
+          example: SMS OTP on phone +49160 xxxxx 28
+        explanation:
+          type: string
+          description: Detailed information about the SCA method for the PSU.
+          example: Detailed information about the SCA method for the PSU.
+      description: Authentication Object
+    authenticationType:
+      title: authenticationType
+      type: string
+      enum:
+        - SMS_OTP
+        - CHIP_OTP
+        - PHOTO_OTP
+        - PUSH_OTP
+        - APP_TO_APP_IOS
+        - APP_TO_APP_ANDROID
+        - SCAREDIRECT
+    XS2A_Berlin_Links:
+      required:
+        - scaRedirect
+        - status
+      type: object
+      properties:
+        scaRedirect:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        status:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+    XS2A_Berlin_Href:
+      required:
+        - href
+      type: object
+      properties:
+        href:
+          type: string
+          example: https://api.testbank.com
+    XS2A_Berlin_Consent_Status:
+      type: string
+      description: Authentication status of the consent.
+      enum:
+        - received
+        - valid
+        - rejected
+        - revokedByPsu
+        - expired
+        - terminatedByTpp
+    XS2A_Berlin_Error:
+      type: object
+      properties:
+        errorCode:
+          type: string
+          description: Optional error code for reporting purposes.
+        errorDescription:
+          type: string
+          description: The description of the error.
+    Error400_NG_CIS:
+      title: Error400_NG_CIS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage400_CIS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: |
+        NextGenPSD2 specific definition of reporting error information in case of a HTTP error code 400.
+    Error401_NG_CIS:
+      title: Error401_NG_CIS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage401_CIS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: |
+        NextGenPSD2 specific definition of reporting error information in case of a HTTP error code 401.
+    Error403_NG_CIS:
+      title: Error403_NG_CIS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage403_CIS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: |
+        NextGenPSD2 specific definition of reporting error information in case of a HTTP error code 403.
+    Error404_NG_CIS:
+      title: Error404_NG_CIS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage404_CIS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: |
+        NextGenPSD2 specific definition of reporting error information in case of a HTTP error code 404.
+    Error405_NG_CIS:
+      title: Error405_NG_CIS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage405_CIS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: |
+        NextGenPSD2 specific definition of reporting error information in case of a HTTP error code 405.
+    Error406_NG_CIS:
+      title: Error406_NG_CIS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage406_CIS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: |
+        NextGenPSD2 specific definition of reporting error information in case of a HTTP error code 406.
+    Error409_NG_CIS:
+      title: Error409_NG_CIS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage409_CIS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: |
+        NextGenPSD2 specific definition of reporting error information in case of a HTTP error code 409.
+    Error429_NG_CIS:
+      title: Error429_NG_CIS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage429_CIS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: |
+        NextGenPSD2 specific definition of reporting error information in case of a HTTP error code 429.
+    tppMessage400_CIS:
+      title: tppMessage400_CIS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          $ref: '#/components/schemas/MessageCode400_CIS'
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage401_CIS:
+      title: tppMessage401_CIS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          $ref: '#/components/schemas/MessageCode401_CIS'
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage403_CIS:
+      title: tppMessage403_CIS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          $ref: '#/components/schemas/MessageCode403_CIS'
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage404_CIS:
+      title: tppMessage404_CIS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          $ref: '#/components/schemas/MessageCode404_CIS'
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage405_CIS:
+      title: tppMessage405_CIS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          $ref: '#/components/schemas/MessageCode405_CIS'
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage406_CIS:
+      title: tppMessage406_CIS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          $ref: '#/components/schemas/MessageCode406_CIS'
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage409_CIS:
+      title: tppMessage409_CIS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          $ref: '#/components/schemas/MessageCode409_CIS'
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage429_CIS:
+      title: tppMessage429_CIS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          $ref: '#/components/schemas/MessageCode429_CIS'
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessageCategory:
+      title: tppMessageCategory
+      type: string
+      description: Category of the TPP message category
+      example: ERROR
+      enum:
+        - ERROR
+        - WARNING
+    MessageCode400_CIS:
+      title: MessageCode400_CIS
+      type: string
+      description: Message codes defined for CIS for HTTP Error code 400 (BAD_REQUEST).
+      example: FORMAT_ERROR
+      enum:
+        - FORMAT_ERROR
+        - PARAMETER_NOT_CONSISTENT
+        - PARAMETER_NOT_SUPPORTED
+        - SERVICE_INVALID
+        - RESOURCE_UNKNOWN
+        - RESOURCE_EXPIRED
+        - RESOURCE_BLOCKED
+        - TIMESTAMP_INVALID
+        - PERIOD_INVALID
+        - SCA_METHOD_UNKNOWN
+        - CONSENT_UNKNOWN
+        - SESSIONS_NOT_SUPPORTED
+    MessageCode401_CIS:
+      title: MessageCode401_CIS
+      type: string
+      description: Message codes defined for CIS for HTTP Error code 401 (UNAUTHORIZED).
+      example: CERTIFICATE_INVALID
+      enum:
+        - CERTIFICATE_INVALID
+        - CERTIFICATE_EXPIRED
+        - CERTIFICATE_BLOCKED
+        - CERTIFICATE_REVOKE
+        - CERTIFICATE_MISSING
+        - SIGNATURE_INVALID
+        - SIGNATURE_MISSING
+        - CORPORATE_ID_INVALID
+        - PSU_CREDENTIALS_INVALID
+        - CONSENT_INVALID
+        - CONSENT_EXPIRED
+        - TOKEN_UNKNOWN
+        - TOKEN_INVALID
+        - TOKEN_EXPIRED
+    MessageCode403_CIS:
+      title: MessageCode403_CIS
+      type: string
+      description: Message codes defined for CIS for HTTP Error code 403 (FORBIDDEN).
+      example: CONSENT_UNKNOWN
+      enum:
+        - CONSENT_UNKNOWN
+        - SERVICE_BLOCKED
+        - RESOURCE_UNKNOWN
+        - RESOURCE_EXPIRED
+    MessageCode404_CIS:
+      title: MessageCode404_CIS
+      type: string
+      description: Message codes defined for CIS for HTTP Error code 404 (NOT_FOUND).
+      example: RESOURCE_UNKNOWN
+      enum:
+        - RESOURCE_UNKNOWN
+    MessageCode405_CIS:
+      title: MessageCode405_CIS
+      type: string
+      description: Message codes defined for CIS for HTTP Error code 405 (METHOD_NOT_ALLOWED).
+      example: SERVICE_INVALID
+      enum:
+        - SERVICE_INVALID
+    MessageCode406_CIS:
+      title: MessageCode406_CIS
+      type: string
+      description: Message codes defined for CIS for HTTP Error code 406 (NOT_ACCEPTABLE).
+      example: REQUESTED_FORMATS_INVALID
+      enum:
+        - REQUESTED_FORMATS_INVALID
+    MessageCode409_CIS:
+      title: MessageCode409_CIS
+      type: string
+      description: Message codes defined for CIS for HTTP Error code 409 (CONFLICT).
+      example: STATUS_INVALID
+      enum:
+        - STATUS_INVALID
+    MessageCode429_CIS:
+      title: MessageCode429_CIS
+      type: string
+      description: Message codes defined for CIS for HTTP Error code 429 (TOO_MANY_REQUESTS).
+      example: ACCESS_EXCEEDED
+      enum:
+        - ACCESS_EXCEEDED
+    _linksAll:
+      title: _linksAll
+      type: object
+      properties:
+        scaRedirect:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        scaApp2AppIOS:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        scaApp2AppAndroid:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        scaOAuth:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        startAuthorisation:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        startAuthorisationWithPsuIdentification:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        updatePsuIdentification:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        startAuthorisationWithProprietaryData:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        updateProprietaryData:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        startAuthorisationWithPsuAuthentication:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        updatePsuAuthentication:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        startAuthorisationWithEncryptedPsuAuthentication:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        updateEncryptedPsuAuthentication:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        startAuthorisationWithAuthenticationMethodSelection:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        selectAuthenticationMethod:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        startAuthorisationWithTransactionAuthorisation:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        authoriseTransaction:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        self:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        status:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        scaStatus:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        account:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        balances:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        transactions:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        transactionDetails:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        cardAccount:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        cardTransactions:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        first:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        next:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        previous:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        last:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+        download:
+          $ref: '#/components/schemas/XS2A_Berlin_Href'
+      description: A _link object with all availabel link types
+    cardExpiryDate:
+      type: string
+      description: |
+        Expiry date of the card issued by the PIISP.
+      format: date
+      example: 2018-07-01
+    cardNumber:
+      maxLength: 35
+      type: string
+      description: Card Number of the card issued by the PIISP. Should be delivered
+        if available.
+    cardInformation:
+      maxLength: 140
+      type: string
+      description: Addtional explanation for the card product.
+    registrationInformation:
+      maxLength: 140
+      type: string
+      description: Addtional information about the registration process for the PSU,
+        e. g. a reference to the TPP / PSU contract.
+    accountReference:
+      type: object
+      properties:
+        iban:
+          $ref: '#/components/schemas/iban'
+        currency:
+          $ref: '#/components/schemas/currencyCode'
+      description: |
+        Reference to an account by either
+          * IBAN, of a payment accounts, or
+          * BBAN, for payment accounts if there is no IBAN, or
+          * the Primary Account Number (PAN) of a card, can be tokenised by the ASPSP due to PCI DSS requirements, or
+          * the Primary Account Number (PAN) of a card in a masked form, or
+          * an alias to access a payment account via a registered mobile phone number (MSISDN).
+    iban:
+      pattern: '[A-Z]{2,2}[0-9]{2,2}[a-zA-Z0-9]{1,30}'
+      type: string
+      description: IBAN of an account
+      example: FR7612345987650123456789014
+    currencyCode:
+      pattern: '[A-Z]{3}'
+      type: string
+      description: ISO 4217 Alpha 3 currency code
+      example: EUR
+  parameters:
+    Digest:
+      name: Digest
+      in: header
+      description: |-
+        The digest is a base64 encoded hash of the body.
+        Hash the body of your request (or an empty string if there is no body) using the SHA-256 algorithm.
+        Base64 encode the output and add the result to your Digest header, specifying the hashing algorithm used.
+      schema:
+        type: string
+      example: SHA-256=ZuYiOtZkVxhjWmwTO5lOpsPevUNMezvk6dfb6fVhebM=
+    Signature:
+      name: Signature
+      in: header
+      description: |-
+        A signature of the request by the TPP at the application level. This might be mandated by the ASPSP. 
+        The signature is a list of headers with their signed values. Any header can be used in the signature (including the `Digest` header), with the exception of the `client_id` header. 
+        To sign the `client_id` header, its name should be treated as `clientId`.
+        First, prepare the headers in the format of "header name: header value" with a line separator, e.g.,
+        ```
+        Digest: SHA-256=ZuYiOtZkVxhjWmwTO5lOpsPevUNMezvk6dfb6fVhebM=
+        clientId: WmwTO5lOpsPevUNMezvk6df
+        ```
+        Then, sign this string using your private key and hash it with SHA-256 using RSA.
+        Finally, base64 encode the resulting value. The `Signature` header should include the `keyId`, `algorithm="rsa-sha256"`, `headers` list, and the base64 encoded signature.
+      example: |-
+        keyId="SN=9FA1,CA=D-TRUST%20CA%202-1%202015,O=D-Trust%20GmbH,C=DE",algorithm="rsa-sha256",
+        headers="Digest clientId",
+        signature="Base64(RSA-SHA256(signing string))"
+      schema:
+        type: string
+    TPP-Signature-Certificate:
+      name: TPP-Signature-Certificate
+      in: header
+      description: |-
+        The certificate used for signing the request, in base64 encoding.
+        Must be included if a signature is present. The request must be signed with your QSEAL certificate.
+        The algorithm used for the signature must be RSA-SHA256. If this header is present, the `Signature` and `Digest` headers must also be provided.
+      schema:
+        type: string
+      example: MIIHXTCCBUWgAwIBAgIMIgFezw5y5yKRhs9TMA0GCSqGSIb3DQEBCwUAMGUxCzACORgEBMBMGBgQAjkYBBjAJBgcEAI5GAQYCMDQGBgQAjkYBBTAqMCgWImh0dHBzOi8vd3d3LmNlcnRzaWduLnJvL3JlcG9z...
+    TPP-Redirect-Preferred:
+      name: TPP-Redirect-Preferred
+      in: header
+      description: If it equals "true", the TPP prefers a redirect over an embedded
+        SCA approach.
+      schema:
+        type: string
+        enum:
+          - "true"
+          - "false"
+    TPP-Redirect-URI:
+      name: TPP-Redirect-URI
+      in: header
+      description: |-
+        URI of the URI of the TPP, where the transaction
+          flow shall be redirected to after a
+          Redirect. Mandated for the Redirect SCA
+          Approach, specifically when TPP-Redirect-
+          Preferred equals "true". See Section 4.10 for
+          further requirements on this header.
+          It is recommended to always use this header
+          field.
+      schema:
+        type: string
+        format: uri
+    TPP-Nok-Redirect-URI:
+      name: TPP-Nok-Redirect-URI
+      in: header
+      description: If this URI is contained, the TPP is asking to redirect the transaction
+        flow to this address instead of the TPP-Redirect-URI in case of a negative
+        result of the redirect SCA method. This might be ignored by the ASPSP.
+      schema:
+        type: string
+        format: uri
+    TPP-Explicit-Authorisation-Preferred:
+      name: TPP-Explicit-Authorisation-Preferred
+      in: header
+      description: If it equals "true", the TPP prefers to start the authorisation
+        process separately, e.g. because of the usage of a signing basket.
+      schema:
+        type: string
+        enum:
+          - "true"
+          - "false"
+    PSU-ID:
+      name: PSU-ID
+      in: header
+      description: >-
+        Client ID of the PSU in the ASPSP client
+        interface.
+        It is mandated by the Raiffeisen Bank to be required field if the PSU-Corporate-ID is not provided.
+        It might be contained even if an OAuth2 based authentication was performed in a
+        pre-step In this case the ASPSP might
+        check whether PSU-ID and token match,
+        according to ASPSP documentation.
+      schema:
+        type: string
+    PSU-ID-Type:
+      name: PSU-ID-Type
+      in: header
+      description: Type of the PSU-ID, needed in scenarios where PSUs have several
+        PSU-IDs as access possibility.
+      schema:
+        type: string
+    PSU-Corporate-ID:
+      name: PSU-Corporate-ID
+      in: header
+      description: It is mandated by the Raiffeisen Bank to be required field if the PSU-ID is not provided.
+      schema:
+        type: string
+    PSU-Corporate-ID-Type:
+      name: PSU-Corporate-ID-Type
+      in: header
+      description: Might be mandated in the ASPSP's documentation. Only used in a
+        corporate context.
+      schema:
+        type: string
+    PSU-IP-Address_conditionalForAis:
+      name: PSU-IP-Address
+      in: header
+      description: The forwarded IP Address header field consists of the corresponding
+        HTTP request
+      schema:
+        type: string
+        format: ipv4
+    PSU-IP-Port:
+      name: PSU-IP-Port
+      in: header
+      description: The forwarded IP Port header field consists of the corresponding
+        HTTP request IP Port field between PSU and TPP, if available.
+      schema:
+        type: string
+    PSU-Accept:
+      name: PSU-Accept
+      in: header
+      description: The forwarded IP Accept header fields consist of the corresponding
+        HTTP request Accept header fields between PSU and TPP, if available.
+      schema:
+        type: string
+    PSU-Accept-Charset:
+      name: PSU-Accept-Charset
+      in: header
+      description: The forwarded IP Accept header fields consist of the corresponding
+        HTTP request Accept header fields between PSU and TPP, if available.
+      schema:
+        type: string
+    PSU-Accept-Encoding:
+      name: PSU-Accept-Encoding
+      in: header
+      description: The forwarded IP Accept header fields consist of the corresponding
+        HTTP request Accept header fields between PSU and TPP, if available.
+      schema:
+        type: string
+    PSU-Accept-Language:
+      name: PSU-Accept-Language
+      in: header
+      description: The forwarded IP Accept header fields consist of the corresponding
+        HTTP request Accept header fields between PSU and TPP, if available.
+      schema:
+        type: string
+    PSU-User-Agent:
+      name: PSU-User-Agent
+      in: header
+      description: |-
+        The forwarded Agent header field of the HTTP request between
+        PSU and TPP, if available.
+        Examples
+          * Android:  "Myappa/1.2 Dalvik/2.1.0 (Linux; U; Android 6.0.1; vivo 1610 Build/MMB29M)"
+          * iOS: "MyApp/1 iPhone5,2 iOS/10_1 CFNetwork/808.3 Darwin/16.3.0"
+      schema:
+        type: string
+    PSU-Http-Method:
+      name: PSU-Http-Method
+      in: header
+      description: HTTP method used at the PSU ? TPP interface, if available.
+      schema:
+        type: string
+        enum:
+          - GET
+          - POST
+          - PUT
+          - PATCH
+          - DELETE
+    PSU-Device-ID:
+      name: PSU-Device-ID
+      in: header
+      description: UUID (Universally Unique Identifier) for a device, which is used
+        by the PSU, if available.
+      schema:
+        type: string
+        format: uuid
+    PSU-Geo-Location:
+      name: PSU-Geo-Location
+      in: header
+      description: The forwarded Geo Location of the corresponding http request between
+        PSU and TPP if available.
+      schema:
+        pattern: GEO:-?[0-9]{1,2}\.[0-9]{6};-?[0-9]{1,3}\.[0-9]{6}
+        type: string
+    X-Request-ID:
+      name: X-Request-ID
+      in: header
+      description: ID of the request, unique to the call, as determined by the initiating
+        party.
+      required: true
+      schema:
+        type: string
+        format: UUID
+    consentId:
+      name: consentId
+      in: path
+      description: ID of the corresponding consent object as returned by an Account Information Consent Request.
+      required: true
+      schema:
+        type: string
+        format: UUID
+    Authorization:
+      name: Authorization
+      in: header
+      description: OAuth2 based SCA was performed in the corresponding consent transaction
+        or if OAuth2 has been used in a pre-step.
+      required: true
+      schema:
+        type: string
+  securitySchemes:
+    clientIdHeader:
+      type: apiKey
+      name: X-IBM-Client-Id
+      in: header
+

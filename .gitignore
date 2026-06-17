@@ -1,0 +1,23 @@
+# Secrets & credentials — never commit
+secrets/
+.env
+.env.*
+!.env.example
+*.p12
+*.pfx
+*.pem
+*.key
+*.crt
+*.cer
+
+# Sandbox reference dumps (non-real test data, kept local only)
+docs/sandbox/
+
+# Go
+/bin/
+*.test
+*.out
+coverage.*
+
+# OS / editor
+.DS_Store

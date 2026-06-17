@@ -1,0 +1,2939 @@
+openapi: 3.0.1
+x-kong-name: psd2-payments-api-132
+info:
+  title: Payments API
+  version: 1.3.2
+  x-kong-name: psd2-payments-api-132
+externalDocs:
+  description: |
+    Full Documentation of NextGenPSD2 Access to Account Interoperability Framework
+    (General Introduction Paper, Operational Rules, Implementation Guidelines)
+  url: https://www.berlin-group.org/nextgenpsd2-downloads
+servers:
+  - url: https://hu-api-sandbox.raiffeisen.hu/rbhu/prod02/psd2-payments-api-1.3.2/v1/
+security:
+  - clientIdHeader: []
+tags:
+  - name: Payment Initiation Service (PIS)
+    description: |
+      The Decription for Payment Initiation Service (PIS) offers the following services:
+        * Initiation and update of a payment request
+        * Status information of a payment
+  - name: Common Services
+    description: |-
+      Processes on starting authorisations, update PSU identification or PSU authentication data and explicit
+      authorisation of transactions by using SCA are very similar in PIS and AIS services.
+      The API calls supporting these processes are described in the following independently from the service/endpoint.
+      For reasons of clarity, the endpoints are defined always for the Payment Initiation Service, the Payment Cancellation,
+      the Account Information Service (Consents).
+      These processes usually are used following a hyperlink of the ASPSP.
+paths:
+  /{payment_service}/{payment_product}/{paymentId}/status:
+    get:
+      tags:
+        - Payment Initiation Service (PIS)
+      summary: Payment initiation status request
+      description: Check the transaction status of a payment initiation.
+      operationId: getPaymentInitiationStatus
+      x-kong-plugin-request-validator:
+        enabled: true
+      parameters:
+        - $ref: "#/components/parameters/payment_service"
+        - $ref: "#/components/parameters/payment_product"
+        - $ref: "#/components/parameters/paymentId"
+        - $ref: "#/components/parameters/X-Request-ID"
+        - $ref: "#/components/parameters/Digest"
+        - $ref: "#/components/parameters/Signature"
+        - $ref: "#/components/parameters/TPP-Signature-Certificate"
+        - $ref: "#/components/parameters/PSU-IP-Address"
+        - $ref: "#/components/parameters/PSU-IP-Port"
+        - $ref: "#/components/parameters/PSU-Accept"
+        - $ref: "#/components/parameters/PSU-Accept-Charset"
+        - $ref: "#/components/parameters/PSU-Accept-Encoding"
+        - $ref: "#/components/parameters/PSU-Accept-Language"
+        - $ref: "#/components/parameters/PSU-User-Agent"
+        - $ref: "#/components/parameters/PSU-Http-Method"
+        - $ref: "#/components/parameters/PSU-Device-ID"
+        - $ref: "#/components/parameters/PSU-Geo-Location"
+      responses:
+        200:
+          description: OK
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OK_200_PaymentInitiationStatus'
+        400:
+          description: Bad Request
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400_NG_PIS'
+        401:
+          description: Unauthorized
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error401_NG_PIS'
+        403:
+          description: Forbidden
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403_NG_PIS'
+        404:
+          description: Not found
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error404_NG_PIS'
+        405:
+          description: Method Not Allowed
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error405_NG_PIS'
+        406:
+          description: Not Acceptable
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        408:
+          description: Request Timeout
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        409:
+          description: Conflict
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error409_NG_PIS'
+        415:
+          description: Unsuported Media Type
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        429:
+          description: Too Many Requests
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        500:
+          description: Internal Server Error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        503:
+          description: Service Unavailable
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+  /payments/{payment_product}/{paymentId}:
+    get:
+      tags:
+        - Payment Initiation Service (PIS)
+      summary: Get Payment Information
+      description: Returns the content of a payment object.
+      operationId: getPaymentInformationSingle
+      x-kong-plugin-request-validator:
+        enabled: true
+      parameters:
+        - $ref: "#/components/parameters/payment_product"
+        - $ref: "#/components/parameters/paymentId"
+        - $ref: "#/components/parameters/X-Request-ID"
+        - $ref: "#/components/parameters/Digest"
+        - $ref: "#/components/parameters/Signature"
+        - $ref: "#/components/parameters/TPP-Signature-Certificate"
+        - $ref: "#/components/parameters/PSU-IP-Address"
+        - $ref: "#/components/parameters/PSU-IP-Port"
+        - $ref: "#/components/parameters/PSU-Accept"
+        - $ref: "#/components/parameters/PSU-Accept-Charset"
+        - $ref: "#/components/parameters/PSU-Accept-Encoding"
+        - $ref: "#/components/parameters/PSU-Accept-Language"
+        - $ref: "#/components/parameters/PSU-User-Agent"
+        - $ref: "#/components/parameters/PSU-Http-Method"
+        - $ref: "#/components/parameters/PSU-Device-ID"
+        - $ref: "#/components/parameters/PSU-Geo-Location"
+      responses:
+        200:
+          description: OK
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/paymentInitiationWithStatusResponse'
+        400:
+          description: Bad Request
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400_NG_PIS'
+        401:
+          description: Unauthorized
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error401_NG_PIS'
+        403:
+          description: Forbidden
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403_NG_PIS'
+        404:
+          description: Not found
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error404_NG_PIS'
+        405:
+          description: Method Not Allowed
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error405_NG_PIS'
+        406:
+          description: Not Acceptable
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        408:
+          description: Request Timeout
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        409:
+          description: Conflict
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error409_NG_PIS'
+        415:
+          description: Unsuported Media Type
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        429:
+          description: Too Many Requests
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        500:
+          description: Internal Server Error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        503:
+          description: Service Unavailable
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+  /periodic-payments/{payment_product}/{paymentId}:
+    get:
+      tags:
+        - Payment Initiation Service (PIS)
+      summary: Get Payment Information
+      description: Returns the content of a payment object.
+      operationId: getPaymentInformationPeriodoc
+      x-kong-plugin-request-validator:
+        enabled: true
+      parameters:
+        - $ref: "#/components/parameters/payment_product"
+        - $ref: "#/components/parameters/paymentId"
+        - $ref: "#/components/parameters/X-Request-ID"
+        - $ref: "#/components/parameters/Digest"
+        - $ref: "#/components/parameters/Signature"
+        - $ref: "#/components/parameters/TPP-Signature-Certificate"
+        - $ref: "#/components/parameters/PSU-IP-Address"
+        - $ref: "#/components/parameters/PSU-IP-Port"
+        - $ref: "#/components/parameters/PSU-Accept"
+        - $ref: "#/components/parameters/PSU-Accept-Charset"
+        - $ref: "#/components/parameters/PSU-Accept-Encoding"
+        - $ref: "#/components/parameters/PSU-Accept-Language"
+        - $ref: "#/components/parameters/PSU-User-Agent"
+        - $ref: "#/components/parameters/PSU-Http-Method"
+        - $ref: "#/components/parameters/PSU-Device-ID"
+        - $ref: "#/components/parameters/PSU-Geo-Location"
+      responses:
+        200:
+          description: OK
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/periodicPaymentInitiationWithStatusResponse'
+        400:
+          description: Bad Request
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400_NG_PIS'
+        401:
+          description: Unauthorized
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error401_NG_PIS'
+        403:
+          description: Forbidden
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403_NG_PIS'
+        404:
+          description: Not found
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error404_NG_PIS'
+        405:
+          description: Method Not Allowed
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error405_NG_PIS'
+        406:
+          description: Not Acceptable
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        408:
+          description: Request Timeout
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        409:
+          description: Conflict
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error409_NG_PIS'
+        415:
+          description: Unsuported Media Type
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        429:
+          description: Too Many Requests
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        500:
+          description: Internal Server Error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        503:
+          description: Service Unavailable
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+  /bulk-payments/{payment_product}/{paymentId}:
+    get:
+      tags:
+        - Payment Initiation Service (PIS)
+      summary: Get Payment Information
+      description: Returns the content of a payment object.
+      operationId: getPaymentInformationBulk
+      x-kong-plugin-request-validator:
+        enabled: true
+      parameters:
+        - $ref: "#/components/parameters/payment_product"
+        - $ref: "#/components/parameters/paymentId"
+        - $ref: "#/components/parameters/X-Request-ID"
+        - $ref: "#/components/parameters/Digest"
+        - $ref: "#/components/parameters/Signature"
+        - $ref: "#/components/parameters/TPP-Signature-Certificate"
+        - $ref: "#/components/parameters/PSU-IP-Address"
+        - $ref: "#/components/parameters/PSU-IP-Port"
+        - $ref: "#/components/parameters/PSU-Accept"
+        - $ref: "#/components/parameters/PSU-Accept-Charset"
+        - $ref: "#/components/parameters/PSU-Accept-Encoding"
+        - $ref: "#/components/parameters/PSU-Accept-Language"
+        - $ref: "#/components/parameters/PSU-User-Agent"
+        - $ref: "#/components/parameters/PSU-Http-Method"
+        - $ref: "#/components/parameters/PSU-Device-ID"
+        - $ref: "#/components/parameters/PSU-Geo-Location"
+      responses:
+        200:
+          description: OK
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/bulkPaymentInitiationWithStatusResponse'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/bulkPaymentInitiationWithStatusResponse'
+        400:
+          description: Bad Request
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400_NG_PIS'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Error400_NG_PIS'
+        401:
+          description: Unauthorized
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error401_NG_PIS'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Error401_NG_PIS'
+        403:
+          description: Forbidden
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403_NG_PIS'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Error403_NG_PIS'
+        404:
+          description: Not found
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error404_NG_PIS'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Error404_NG_PIS'
+        405:
+          description: Method Not Allowed
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error405_NG_PIS'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Error405_NG_PIS'
+        406:
+          description: Not Acceptable
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        408:
+          description: Request Timeout
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        409:
+          description: Conflict
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error409_NG_PIS'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Error409_NG_PIS'
+        415:
+          description: Unsuported Media Type
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        429:
+          description: Too Many Requests
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        500:
+          description: Internal Server Error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        503:
+          description: Service Unavailable
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+  /{payment_service}/{payment_product}/{paymentId}:
+    delete:
+      tags:
+        - Payment Initiation Service (PIS)
+      summary: Payment Cancellation Request
+      description: |
+        This method initiates the cancellation of a payment.
+        Depending on the payment_service, the payment_product and the ASPSP's implementation,
+        this TPP call might be sufficient to cancel a payment.
+        If an authorisation of the payment cancellation is mandated by the ASPSP,
+        a corresponding hyperlink will be contained in the response message.
+
+        Cancels the addressed payment with resource identification paymentId if applicable to the payment_service, payment_product and received in product related timelines (e.g. before end of business day for scheduled payments of the last business day before the scheduled execution day).
+
+        The response to this DELETE command will tell the TPP whether the
+          * access method was rejected
+          * access method was successful, or
+          * access method is generally applicable, but further authorisation processes are needed.
+      operationId: cancelPayment
+      x-kong-plugin-request-validator:
+        enabled: true
+      parameters:
+        - $ref: "#/components/parameters/payment_service"
+        - $ref: "#/components/parameters/payment_product"
+        - $ref: "#/components/parameters/paymentId"
+        - $ref: "#/components/parameters/X-Request-ID"
+        - $ref: "#/components/parameters/Digest"
+        - $ref: "#/components/parameters/Signature"
+        - $ref: "#/components/parameters/TPP-Signature-Certificate"
+        - $ref: "#/components/parameters/PSU-IP-Address"
+        - $ref: "#/components/parameters/PSU-IP-Port"
+        - $ref: "#/components/parameters/PSU-Accept"
+        - $ref: "#/components/parameters/PSU-Accept-Charset"
+        - $ref: "#/components/parameters/PSU-Accept-Encoding"
+        - $ref: "#/components/parameters/PSU-Accept-Language"
+        - $ref: "#/components/parameters/PSU-User-Agent"
+        - $ref: "#/components/parameters/PSU-Http-Method"
+        - $ref: "#/components/parameters/PSU-Device-ID"
+        - $ref: "#/components/parameters/PSU-Geo-Location"
+      responses:
+        202:
+          description: Received
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  transactionStatus: RCVD
+                  _links: {}
+        204:
+          description: No Content
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+          content: {}
+        400:
+          description: Bad Request
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400_NG_PIS'
+        401:
+          description: Unauthorized
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error401_NG_PIS'
+        403:
+          description: Forbidden
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403_NG_PIS'
+        404:
+          description: Not found
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error404_NG_PIS'
+        405:
+          description: Method Not Allowed
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error405_NG_PIS'
+        406:
+          description: Not Acceptable
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        408:
+          description: Request Timeout
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        409:
+          description: Conflict
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error409_NG_PIS'
+        415:
+          description: Unsuported Media Type
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        429:
+          description: Too Many Requests
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        500:
+          description: Internal Server Error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        503:
+          description: Service Unavailable
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+  /{payment_service}/{payment_product}/{paymentId}/authorisations/{authorisationId}:
+    get:
+      tags:
+        - Authorisation Sub-Resource
+      summary: Get Authorisation Sub-Resource
+      description: This method returns the SCA status of a payment initiation's authorisation
+        sub-resource.
+      operationId: getAuthorisationSubresource
+      x-kong-plugin-request-validator:
+        enabled: true
+      parameters:
+        - $ref: "#/components/parameters/payment_service"
+        - $ref: "#/components/parameters/payment_product"
+        - $ref: "#/components/parameters/paymentId"
+        - $ref: "#/components/parameters/authorisationId"
+        - $ref: "#/components/parameters/X-Request-ID"
+        - $ref: "#/components/parameters/Digest"
+        - $ref: "#/components/parameters/Signature"
+        - $ref: "#/components/parameters/TPP-Signature-Certificate"
+        - $ref: "#/components/parameters/PSU-IP-Address"
+        - $ref: "#/components/parameters/PSU-IP-Port"
+        - $ref: "#/components/parameters/PSU-Accept"
+        - $ref: "#/components/parameters/PSU-Accept-Charset"
+        - $ref: "#/components/parameters/PSU-Accept-Encoding"
+        - $ref: "#/components/parameters/PSU-Accept-Language"
+        - $ref: "#/components/parameters/PSU-User-Agent"
+        - $ref: "#/components/parameters/PSU-Http-Method"
+        - $ref: "#/components/parameters/PSU-Device-ID"
+        - $ref: "#/components/parameters/PSU-Geo-Location"
+      responses:
+        200:
+          description: OK
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/scaStatusResponse'
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400_NG_PIS'
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error401_NG_PIS'
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403_NG_PIS'
+        404:
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error404_NG_PIS'
+        405:
+          description: Method Not Allowed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error405_NG_PIS'
+        406:
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: object
+        408:
+          description: Request Timeout
+          content:
+            application/json:
+              schema:
+                type: object
+        409:
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error409_NG_PIS'
+        415:
+          description: Unsupported Media Type
+          content:
+            application/json:
+              schema:
+                type: object
+        429:
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                type: object
+        503:
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                type: object
+        default:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+      deprecated: false
+  /{payment_service}/{payment_product}/{paymentId}/authorisations:
+    get:
+      tags:
+        - List Authorisation Sub-Resources
+      summary: Get List Authorisation Sub-Resources
+      description: Read a list of all authorisation subresources IDs which have been
+        created.
+      operationId: getListAuthorisationSubresources
+      x-kong-plugin-request-validator:
+        enabled: true
+      parameters:
+        - $ref: "#/components/parameters/payment_service"
+        - $ref: "#/components/parameters/payment_product"
+        - $ref: "#/components/parameters/paymentId"
+        - $ref: "#/components/parameters/X-Request-ID"
+        - $ref: "#/components/parameters/Digest"
+        - $ref: "#/components/parameters/Signature"
+        - $ref: "#/components/parameters/TPP-Signature-Certificate"
+        - $ref: "#/components/parameters/PSU-IP-Address"
+        - $ref: "#/components/parameters/PSU-IP-Port"
+        - $ref: "#/components/parameters/PSU-Accept"
+        - $ref: "#/components/parameters/PSU-Accept-Charset"
+        - $ref: "#/components/parameters/PSU-Accept-Encoding"
+        - $ref: "#/components/parameters/PSU-Accept-Language"
+        - $ref: "#/components/parameters/PSU-User-Agent"
+        - $ref: "#/components/parameters/PSU-Http-Method"
+        - $ref: "#/components/parameters/PSU-Device-ID"
+        - $ref: "#/components/parameters/PSU-Geo-Location"
+      responses:
+        200:
+          description: OK
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/authorisations'
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400_NG_PIS'
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error401_NG_PIS'
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403_NG_PIS'
+        404:
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error404_NG_PIS'
+        405:
+          description: Method Not Allowed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error405_NG_PIS'
+        406:
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: object
+        408:
+          description: Request Timeout
+          content:
+            application/json:
+              schema:
+                type: object
+        409:
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error409_NG_PIS'
+        415:
+          description: Unsupported Media Type
+          content:
+            application/json:
+              schema:
+                type: object
+        429:
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                type: object
+        503:
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                type: object
+        default:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+      deprecated: false
+    post:
+      tags:
+        - Post Authorisation Sub-Resource
+      summary: Post Authorisation Sub-Resource
+      description: Create an authorisation sub-resource and start the authorisation
+        process.
+      operationId: postAuthorisationSubresource
+      x-kong-plugin-request-validator:
+        enabled: true
+      parameters:
+        - $ref: "#/components/parameters/payment_service"
+        - $ref: "#/components/parameters/payment_product"
+        - $ref: "#/components/parameters/paymentId"
+        - $ref: "#/components/parameters/X-Request-ID"
+        - $ref: "#/components/parameters/PSU-ID"
+        - $ref: "#/components/parameters/PSU-ID-Type"
+        - $ref: "#/components/parameters/PSU-Corporate-ID"
+        - $ref: "#/components/parameters/PSU-Corporate-ID-Type"
+        - $ref: "#/components/parameters/TPP-Redirect-Preferred"
+        - $ref: "#/components/parameters/TPP-Redirect-URI"
+        - $ref: "#/components/parameters/TPP-Nok-Redirect-URI"
+        - $ref: "#/components/parameters/TPP-Notification-URI"
+        - $ref: "#/components/parameters/TPP-Notification-Content-Preferred"
+        - $ref: "#/components/parameters/Digest"
+        - $ref: "#/components/parameters/Signature"
+        - $ref: "#/components/parameters/TPP-Signature-Certificate"
+        - $ref: "#/components/parameters/PSU-IP-Address"
+        - $ref: "#/components/parameters/PSU-IP-Port"
+        - $ref: "#/components/parameters/PSU-Accept"
+        - $ref: "#/components/parameters/PSU-Accept-Charset"
+        - $ref: "#/components/parameters/PSU-Accept-Encoding"
+        - $ref: "#/components/parameters/PSU-Accept-Language"
+        - $ref: "#/components/parameters/PSU-User-Agent"
+        - $ref: "#/components/parameters/PSU-Http-Method"
+        - $ref: "#/components/parameters/PSU-Device-ID"
+        - $ref: "#/components/parameters/PSU-Geo-Location"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        required: false
+      responses:
+        201:
+          description: Body of the JSON response for a Start SCA authorisation request.
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            ASPSP-SCA-Approach:
+              schema:
+                type: string
+                default: EMBEDDED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/startScaprocessResponse'
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400_NG_PIS'
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error401_NG_PIS'
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403_NG_PIS'
+        404:
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error404_NG_PIS'
+        405:
+          description: Method Not Allowed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error405_NG_PIS'
+        406:
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: object
+        408:
+          description: Request Timeout
+          content:
+            application/json:
+              schema:
+                type: object
+        409:
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error409_NG_PIS'
+        415:
+          description: Unsupported Media Type
+          content:
+            application/json:
+              schema:
+                type: object
+        429:
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                type: object
+        503:
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                type: object
+        default:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+      deprecated: false
+      x-codegen-request-body-name: body
+  /{payment_service}/{payment_product}/{paymentId}/cancellation-authorisations:
+    get:
+      tags:
+        - Get Cancellation Authorisation Information
+      summary: Get Cancellation Authorisation Information
+      description: Retrieve a list of all created cancellation authorisation sub-resources.
+      operationId: getAuthorisationCancellationInformation
+      x-kong-plugin-request-validator:
+        enabled: true
+      parameters:
+        - $ref: "#/components/parameters/payment_service"
+        - $ref: "#/components/parameters/payment_product"
+        - $ref: "#/components/parameters/paymentId"
+        - $ref: "#/components/parameters/X-Request-ID"
+        - $ref: "#/components/parameters/Digest"
+        - $ref: "#/components/parameters/Signature"
+        - $ref: "#/components/parameters/TPP-Signature-Certificate"
+        - $ref: "#/components/parameters/PSU-IP-Address"
+        - $ref: "#/components/parameters/PSU-IP-Port"
+        - $ref: "#/components/parameters/PSU-Accept"
+        - $ref: "#/components/parameters/PSU-Accept-Charset"
+        - $ref: "#/components/parameters/PSU-Accept-Encoding"
+        - $ref: "#/components/parameters/PSU-Accept-Language"
+        - $ref: "#/components/parameters/PSU-User-Agent"
+        - $ref: "#/components/parameters/PSU-Http-Method"
+        - $ref: "#/components/parameters/PSU-Device-ID"
+        - $ref: "#/components/parameters/PSU-Geo-Location"
+      responses:
+        200:
+          description: OK
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400_NG_PIS'
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error401_NG_PIS'
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403_NG_PIS'
+        404:
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error404_NG_PIS'
+        405:
+          description: Method Not Allowed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error405_NG_PIS'
+        406:
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: object
+        408:
+          description: Request Timeout
+          content:
+            application/json:
+              schema:
+                type: object
+        409:
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error409_NG_PIS'
+        415:
+          description: Unsupported Media Type
+          content:
+            application/json:
+              schema:
+                type: object
+        429:
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                type: object
+        503:
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                type: object
+        default:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+      deprecated: false
+    post:
+      tags:
+        - Post Authorisation Cancellation
+      summary: Post Authorisation Cancellation
+      description: Creates an authorisation sub-resource and start the authorisation
+        process of the cancellation of the addressed payment.
+      operationId: postAuthorisationCancellation
+      x-kong-plugin-request-validator:
+        enabled: true
+      parameters:
+        - $ref: "#/components/parameters/payment_service"
+        - $ref: "#/components/parameters/payment_product"
+        - $ref: "#/components/parameters/paymentId"
+        - $ref: "#/components/parameters/X-Request-ID"
+        - $ref: "#/components/parameters/Digest"
+        - $ref: "#/components/parameters/Signature"
+        - $ref: "#/components/parameters/TPP-Signature-Certificate"
+        - $ref: "#/components/parameters/PSU-ID"
+        - $ref: "#/components/parameters/PSU-ID-Type"
+        - $ref: "#/components/parameters/PSU-Corporate-ID"
+        - $ref: "#/components/parameters/PSU-Corporate-ID-Type"
+        - $ref: "#/components/parameters/TPP-Redirect-Preferred"
+        - $ref: "#/components/parameters/TPP-Redirect-URI"
+        - $ref: "#/components/parameters/TPP-Nok-Redirect-URI"
+        - $ref: "#/components/parameters/TPP-Notification-URI"
+        - $ref: "#/components/parameters/TPP-Notification-Content-Preferred"
+        - $ref: "#/components/parameters/PSU-IP-Address"
+        - $ref: "#/components/parameters/PSU-IP-Port"
+        - $ref: "#/components/parameters/PSU-Accept"
+        - $ref: "#/components/parameters/PSU-Accept-Charset"
+        - $ref: "#/components/parameters/PSU-Accept-Encoding"
+        - $ref: "#/components/parameters/PSU-Accept-Language"
+        - $ref: "#/components/parameters/PSU-User-Agent"
+        - $ref: "#/components/parameters/PSU-Http-Method"
+        - $ref: "#/components/parameters/PSU-Device-ID"
+        - $ref: "#/components/parameters/PSU-Geo-Location"
+      responses:
+        201:
+          description: Body of the JSON response for a Start SCA authorisation request.
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            ASPSP-SCA-Approach:
+              schema:
+                type: string
+                default: EMBEDDED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/startScaprocessResponse'
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400_NG_PIS'
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error401_NG_PIS'
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403_NG_PIS'
+        404:
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error404_NG_PIS'
+        405:
+          description: Method Not Allowed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error405_NG_PIS'
+        406:
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: object
+        408:
+          description: Request Timeout
+          content:
+            application/json:
+              schema:
+                type: object
+        409:
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error409_NG_PIS'
+        415:
+          description: Unsupported Media Type
+          content:
+            application/json:
+              schema:
+                type: object
+        429:
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                type: object
+        503:
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                type: object
+        default:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+      deprecated: false
+components:
+  schemas:
+    paymentInitiationWithStatusResponse:
+      required:
+        - creditorAccount
+        - creditorName
+        - debtorAccount
+        - instructedAmount
+      type: object
+      properties:
+        transactionStatus:
+          $ref: '#/components/schemas/transactionStatus'
+        endToEndIdentification:
+          maxLength: 35
+          type: string
+        instructedAmount:
+          $ref: '#/components/schemas/amount'
+        debtorAccount:
+          $ref: '#/components/schemas/accountReference'
+        creditorAccount:
+          $ref: '#/components/schemas/accountReference'
+        creditorName:
+          $ref: '#/components/schemas/creditorName'
+        creditorAddress:
+          $ref: '#/components/schemas/address'
+        creditorAgent:
+          $ref: '#/components/schemas/bicfi'
+        remittanceInformationUnstructured:
+          $ref: '#/components/schemas/remittanceInformationUnstructured'
+        remittanceInformationStructured:
+          type: string
+        creditorAgentName:
+          type: string
+        chargeBearer:
+          $ref: '#/components/schemas/ChargeBearer'
+        serviceLevel:
+          $ref: '#/components/schemas/ServiceLevel'
+        requestedExecutionDate:
+          type: string
+          description: '{DATE}'
+          format: date
+          example: 2015-05-05
+        purposeCode:
+          type: string
+          example: S00014
+        ultimateCreditor:
+          type: string
+        ultimateDebtor:
+          type: string
+        instantPayment:
+          type: boolean
+          description: Identify if a payment will be considered as instant or not
+      description: |
+        Generic JSON response body consistion of the corresponding payment initation JSON body together with an optional transaction status field.
+    periodicPaymentInitiationWithStatusResponse:
+      required:
+        - creditorAccount
+        - creditorName
+        - debtorAccount
+        - frequency
+        - instructedAmount
+        - startDate
+      type: object
+      properties:
+        endToEndIdentification:
+          maxLength: 35
+          type: string
+        debtorAccount:
+          $ref: '#/components/schemas/accountReference'
+        instructedAmount:
+          $ref: '#/components/schemas/amount'
+        creditorAccount:
+          $ref: '#/components/schemas/accountReference'
+        creditorAgent:
+          $ref: '#/components/schemas/bicfi'
+        creditorName:
+          $ref: '#/components/schemas/creditorName'
+        creditorAddress:
+          $ref: '#/components/schemas/address'
+        remittanceInformationUnstructured:
+          $ref: '#/components/schemas/remittanceInformationUnstructured'
+        remittanceInformationStructured:
+          type: string
+        creditorAgentName:
+          type: string
+        chargeBearer:
+          $ref: '#/components/schemas/ChargeBearer'
+        serviceLevel:
+          $ref: '#/components/schemas/ServiceLevel'
+        requestedExecutionDate:
+          type: string
+          description: '{DATE}'
+          format: date
+          example: 2015-05-05
+        purposeCode:
+          type: string
+          example: S00014
+        ultimateCreditor:
+          type: string
+        ultimateDebtor:
+          type: string
+        startDate:
+          $ref: '#/components/schemas/startDate'
+        endDate:
+          $ref: '#/components/schemas/endDate'
+        executionRule:
+          $ref: '#/components/schemas/executionRule'
+        frequency:
+          $ref: '#/components/schemas/frequencyCode'
+        dayOfExecution:
+          $ref: '#/components/schemas/dayOfExecution'
+        transactionStatus:
+          $ref: '#/components/schemas/transactionStatus'
+      description: |
+        Generic JSON response body consistion of the corresponding periodic payment initation JSON body together with an optional transaction status field.
+    bulkPaymentInitiationWithStatusResponse:
+      required:
+        - debtorAccount
+        - payments
+      type: object
+      properties:
+        batchBookingPreferred:
+          $ref: '#/components/schemas/batchBookingPreferred'
+        requestedExecutionDate:
+          type: string
+          format: date
+        debtorAccount:
+          $ref: '#/components/schemas/accountReference'
+        payments:
+          type: array
+          description: |
+            A list of generic JSON bodies payment initations for bulk payments via JSON.
+          items:
+            $ref: '#/components/schemas/paymentInitiationBulkElement_json'
+        transactionStatus:
+          $ref: '#/components/schemas/transactionStatus'
+      description: |
+        Generic JSON response body consistion of the corresponding bulk payment initation JSON body together with an optional transaction status field.
+    paymentInitiationBulkElement_json:
+      required:
+        - creditorAccount
+        - creditorName
+        - instructedAmount
+      type: object
+      properties:
+        endToEndIdentification:
+          maxLength: 35
+          type: string
+        instructedAmount:
+          $ref: '#/components/schemas/amount'
+        debtorAccount:
+          $ref: '#/components/schemas/accountReference'
+        creditorAccount:
+          $ref: '#/components/schemas/accountReference'
+        creditorName:
+          $ref: '#/components/schemas/creditorName'
+        creditorAddress:
+          $ref: '#/components/schemas/address'
+        creditorAgent:
+          $ref: '#/components/schemas/bicfi'
+        remittanceInformationUnstructured:
+          $ref: '#/components/schemas/remittanceInformationUnstructured'
+        remittanceInformationStructured:
+          type: string
+        creditorAgentName:
+          type: string
+        chargeBearer:
+          $ref: '#/components/schemas/ChargeBearer'
+        serviceLevel:
+          $ref: '#/components/schemas/ServiceLevel'
+        requestedExecutionDate:
+          type: string
+          description: '{DATE}'
+          format: date
+          example: 2015-05-05
+        purposeCode:
+          type: string
+          example: S00014
+        ultimateCreditor:
+          type: string
+        ultimateDebtor:
+          type: string
+    accountReference:
+      type: object
+      properties:
+        iban:
+          $ref: '#/components/schemas/iban'
+        bban:
+          $ref: '#/components/schemas/bban'
+        currency:
+          $ref: '#/components/schemas/currencyCode'
+        debtorName:
+          type: string
+      description: |
+        Reference to an account by either
+          * IBAN, of a payment accounts, or
+          * BBAN, for payment accounts if there is no IBAN, or
+          * the Primary Account Number (PAN) of a card, can be tokenised by the ASPSP due to PCI DSS requirements, or
+          * the Primary Account Number (PAN) of a card in a masked form, or
+          * an alias to access a payment account via a registered mobile phone number (MSISDN).
+    dayOfExecution:
+      maxLength: 2
+      type: string
+      description: |
+        Day of execution as string.
+
+        This string consists of up two characters.
+        Leading zeroes are not allowed.
+
+        31 is ultimo of the month.
+      enum:
+        - "1"
+        - "2"
+        - "3"
+        - "4"
+        - "5"
+        - "6"
+        - "7"
+        - "8"
+        - "9"
+        - "10"
+        - "11"
+        - "12"
+        - "13"
+        - "14"
+        - "15"
+        - "16"
+        - "17"
+        - "18"
+        - "19"
+        - "20"
+        - "21"
+        - "22"
+        - "23"
+        - "24"
+        - "25"
+        - "26"
+        - "27"
+        - "28"
+        - "29"
+        - "30"
+        - "31"
+    ChargeBearer:
+      title: chargeBearer
+      type: string
+      example: CRED
+      enum:
+        - CRED
+        - DEBT
+        - SHAR
+      x-enum-elements:
+        - name: CRED
+          description: ""
+        - name: DEBT
+          description: ""
+        - name: SHAR
+          description: ""
+        - name: SLEV
+          description: ""
+    ServiceLevel:
+      title: Service level according to ISO 20022
+      type: string
+      example: SEPA
+      enum:
+        - SEPA
+        - URGP
+        - SDVA
+        - NEXT
+        - SPOT
+        - NURG
+    iban:
+      pattern: '[A-Z]{2,2}[0-9]{2,2}[a-zA-Z0-9]{1,30}'
+      type: string
+      description: IBAN of an account.
+      example: FR7612345987650123456789014
+    bban:
+      pattern: '[a-zA-Z0-9]{1,30}'
+      type: string
+      description: |
+        Basic Bank Account Number (BBAN) Identifier.
+
+        This data element can be used in the body of the consent request.
+        Message for retrieving account access consent from this account. This
+        data elements is used for payment accounts which have no IBAN.
+         ISO20022: Basic Bank Account Number (BBAN).
+
+        Identifier used nationally by financial institutions, i.e., in individual countries,
+        generally as part of a National Account Numbering Scheme(s),
+        which uniquely identifies the account of a customer.
+      example: BARC12345612345678
+    amount:
+      required:
+        - amount
+        - currency
+      type: object
+      properties:
+        currency:
+          $ref: '#/components/schemas/currencyCode'
+        amount:
+          $ref: '#/components/schemas/amountValue'
+      example:
+        currency: EUR
+        amount: "123"
+    amountValue:
+      pattern: -?[0-9]{1,14}(\.[0-9]{1,3})?
+      type: string
+      example: "5877.78"
+    bicfi:
+      pattern: '[A-Z]{6,6}[A-Z2-9][A-NP-Z0-9]([A-Z0-9]{3,3}){0,1}'
+      type: string
+      description: |
+        BICFI
+      example: AAAADEBBXXX
+    creditorName:
+      maxLength: 70
+      type: string
+      description: Creditor name.
+      example: Creditor Name
+    creditorAgentName:
+      maxLength: 70
+      type: string
+      description: Creditor agent name.
+      example: Creditor Agent Name
+    batchBookingPreferred:
+      type: boolean
+      description: |
+        If this element equals 'true', the PSU prefers only one booking entry.
+        If this element equals 'false', the PSU prefers individual booking of all contained individual transactions.
+
+        The ASPSP will follow this preference according to contracts agreed on with the PSU.
+      example: false
+    address:
+      required:
+        - country
+      type: object
+      properties:
+        street:
+          maxLength: 70
+          type: string
+        buildingNumber:
+          type: string
+        city:
+          type: string
+        postalCode:
+          type: string
+        country:
+          $ref: '#/components/schemas/countryCode'
+      example:
+        street: rue blue
+        buildingnNumber: "89"
+        city: Paris
+        postalCode: "75000"
+        country: FR
+    remittanceInformationUnstructured:
+      maxLength: 140
+      type: string
+      description: |
+        Unstructured remittance information.
+      example: Ref Number Merchant
+    startDate:
+      type: string
+      description: |
+        The first applicable day of execution starting from this date is the first payment.
+      format: date
+    endDate:
+      type: string
+      description: |
+        The last applicable day of execution.
+        If not given, it is an infinite standing order.
+      format: date
+    countryCode:
+      pattern: '[A-Z]{2}'
+      type: string
+      description: ISO 3166 ALPHA2 country code.
+      example: SE
+    executionRule:
+      type: string
+      description: |
+        "following" or "preceding" supported as values.
+        This data attribute defines the behaviour when recurring payment dates falls on a weekend or bank holiday.
+        The payment is then executed either the "preceding" or "following" working day.
+        ASPSP might reject the request due to the communicated value, if rules in Online-Banking are not supporting
+        this execution rule.
+      enum:
+        - following
+        - preceding
+    frequencyCode:
+      type: string
+      enum:
+        - Daily
+        - Weekly
+        - EveryTwoWeeks
+        - Monthly
+        - EveryTwoMonths
+        - Quarterly
+        - SemiAnnual
+        - Annual
+        - MonthlyVariable
+    authenticationObject:
+      title: authenticationObject
+      required:
+        - authenticationMethodId
+        - authenticationType
+      type: object
+      properties:
+        authenticationType:
+          $ref: '#/components/schemas/authenticationType'
+        authenticationVersion:
+          type: string
+          description: |-
+            Depending on the "authenticationType".
+            This version can be used by differentiating authentication tools used within performing OTP generation in the same authentication type.
+            This version can be referred to in the ASPSP?s documentation.
+        authenticationMethodId:
+          maxLength: 35
+          type: string
+          description: An identification provided by the ASPSP for the later identification
+            of the authentication method selection.
+          example: myAuthenticationID
+        name:
+          type: string
+          description: |-
+            This is the name of the authentication method defined by the PSU in the Online Banking frontend of the ASPSP.
+            Alternatively this could be a description provided by the ASPSP like "SMS OTP on phone +49160 xxxxx 28".
+            This name shall be used by the TPP when presenting a list of authentication methods to the PSU, if available.
+          example: SMS OTP on phone +49160 xxxxx 28
+        explanation:
+          type: string
+          description: Detailed information about the SCA method for the PSU.
+          example: Detailed information about the SCA method for the PSU.
+      description: Authentication Object
+    authenticationType:
+      title: authenticationType
+      type: string
+      description: |-
+        Type of the authentication method.
+
+        More authentication types might be added during implementation projects and documented in the ASPSP documentation.
+
+          - 'SMS_OTP': An SCA method, where an OTP linked to the transaction to be authorised is sent to the PSU through a SMS channel.
+          - 'CHIP_OTP': An SCA method, where an OTP is generated by a chip card, e.g. an TOP derived from an EMV cryptogram.
+            To contact the card, the PSU normally needs a (handheld) device.
+            With this device, the PSU either reads the challenging data through a visual interface like flickering or
+            the PSU types in the challenge through the device key pad.
+            The device then derives an OTP from the challenge data and displays the OTP to the PSU.
+          - 'PHOTO_OTP': An SCA method, where the challenge is a QR code or similar encoded visual data
+            which can be read in by a consumer device or specific mobile app.
+            The device resp. the specific app than derives an OTP from the visual challenge data and displays
+            the OTP to the PSU.
+          - 'PUSH_OTP': An OTP is pushed to a dedicated authentication APP and displayed to the PSU.
+      example: SMS_OTP
+      enum:
+        - SMS_OTP
+        - CHIP_OTP
+        - PHOTO_OTP
+        - PUSH_OTP
+    challengeData:
+      title: challengeData
+      type: object
+      properties:
+        image:
+          type: string
+          description: |-
+            PNG data (max. 512 kilobyte) to be displayed to the PSU,
+            Base64 encoding, cp. [RFC4648].
+            This attribute is used only, when PHOTO_OTP or CHIP_OTP
+            is the selected SCA method.
+        data:
+          type: string
+          description: String challenge data
+        imageLink:
+          type: string
+          description: A link where the ASPSP will provides the challenge image for
+            the TPP.
+        otpMaxLength:
+          type: integer
+          description: The maximal length for the OTP to be typed in by the PSU.
+          format: int32
+        otpFormat:
+          $ref: '#/components/schemas/OtpFormat'
+        additionalInformation:
+          type: string
+          description: |-
+            Additional explanation for the PSU to explain
+            e.g. fallback mechanism for the chosen SCA method.
+            The TPP is obliged to show this to the PSU.
+      description: |-
+        It is contained in addition to the data element 'chosenScaMethod' if challenge data is needed for SCA.
+        In rare cases this attribute is also used in the context of the 'startAuthorisationWithPsuAuthentication' link.
+    hrefType:
+      type: object
+      properties:
+        href:
+          $ref: '#/components/schemas/hrefEntry'
+      description: Link to a resource
+    hrefEntry:
+      type: string
+      description: Link to a resource
+      example: /v1/payments/sepa-credit-transfers/1234-wertiq-983
+    currencyCode:
+      pattern: '[A-Z]{3}'
+      type: string
+      description: |
+        ISO 4217 Alpha 3 currency code.
+      example: EUR
+    scaStatusResponse:
+      title: scaStatusResponse
+      type: object
+      properties:
+        scaStatus:
+          $ref: '#/components/schemas/scaStatus'
+      description: Body of the JSON response with SCA Status
+    scaStatus:
+      title: scaStatus
+      type: string
+      description: |-
+        This data element is containing information about the status of the SCA method applied.
+
+        The following codes are defined for this data type.
+
+          * 'received':
+            An authorisation or cancellation-authorisation resource has been created successfully.
+          * 'psuIdentified':
+            The PSU related to the authorisation or cancellation-authorisation resource has been identified.
+          * 'psuAuthenticated':
+            The PSU related to the authorisation or cancellation-authorisation resource has been identified and authenticated e.g. by a password or by an access token.
+          * 'scaMethodSelected':
+            The PSU/TPP has selected the related SCA routine.
+            If the SCA method is chosen implicitly since only one SCA method is available,
+            then this is the first status to be reported instead of 'received'.
+          * 'started':
+            The addressed SCA routine has been started.
+          * 'finalised':
+            The SCA routine has been finalised successfully.
+          * 'failed':
+            The SCA routine failed
+          * 'exempted':
+            SCA was exempted for the related transaction, the related authorisation is successful.
+      example: received
+      enum:
+        - received
+        - psuIdentified
+        - psuAuthenticated
+        - scaMethodSelected
+        - started
+        - finalised
+        - failed
+        - exempted
+    transactionStatus:
+      type: string
+      description: |
+        The transaction status is filled with codes of the ISO 20022 data table:
+        - 'ACCC': 'AcceptedSettlementCompleted' -
+          Settlement on the creditor's account has been completed.
+        - 'ACCP': 'AcceptedCustomerProfile' -
+          Preceding check of technical validation was successful.
+          Customer profile check was also successful.
+        - 'ACSC': 'AcceptedSettlementCompleted' -
+          Settlement on the debtor�s account has been completed.
+
+          **Usage:** this can be used by the first agent to report to the debtor that the transaction has been completed.
+
+          **Warning:** this status is provided for transaction status reasons, not for financial information.
+          It can only be used after bilateral agreement.
+        - 'ACSP': 'AcceptedSettlementInProcess' -
+          All preceding checks such as technical validation and customer profile were successful and therefore the payment initiation has been accepted for execution.
+        - 'ACTC': 'AcceptedTechnicalValidation' -
+          Authentication and syntactical and semantical validation are successful.
+        - 'ACWC': 'AcceptedWithChange' -
+          Instruction is accepted but a change will be made, such as date or remittance not sent.
+        - 'ACWP': 'AcceptedWithoutPosting' -
+          Payment instruction included in the credit transfer is accepted without being posted to the creditor customer account.
+        - 'RCVD': 'Received' -
+          Payment initiation has been received by the receiving agent.
+        - 'PDNG': 'Pending' -
+          Payment initiation or individual transaction included in the payment initiation is pending.
+          Further checks and status update will be performed.
+        - 'RJCT': 'Rejected' -
+          Payment initiation or individual transaction included in the payment initiation has been rejected.
+        - 'CANC': 'Cancelled'
+          Payment initiation has been cancelled before execution
+          Remark: This codeis accepted as new code by ISO20022.
+        - 'ACFC': 'AcceptedFundsChecked' -
+          Preceding check of technical validation and customer profile was successful and an automatic funds check was positive .
+          Remark: This code is accepted as new code by ISO20022.
+        - 'PATC': 'PartiallyAcceptedTechnical'
+          Correct The payment initiation needs multiple authentications, where some but not yet all have been performed. Syntactical and semantical validations are successful.
+          Remark: This code is accepted as new code by ISO20022.
+        - 'PART': 'PartiallyAccepted' -
+          A number of transactions have been accepted, whereas another number of transactions have not yet achieved 'accepted' status.
+          Remark: This code may be used only in case of bulk payments. It is only used in a situation where all mandated authorisations have been applied, but some payments have been rejected.
+      example: ACCP
+      enum:
+        - ACCC
+        - ACCP
+        - ACSC
+        - ACSP
+        - ACTC
+        - ACWC
+        - ACWP
+        - RCVD
+        - PDNG
+        - RJCT
+        - CANC
+        - ACFC
+        - PATC
+        - PART
+    tppMessageCategory:
+      title: tppMessageCategory
+      type: string
+      description: Category of the TPP message category
+      example: ERROR
+      enum:
+        - ERROR
+        - WARNING
+    _linksAll:
+      title: _linksAll
+      type: object
+      properties:
+        scaRedirect:
+          $ref: '#/components/schemas/hrefType'
+        scaApp2AppIOS:
+          $ref: '#/components/schemas/hrefType'
+        scaApp2AppAndroid:
+          $ref: '#/components/schemas/hrefType'
+        scaOAuth:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisation:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithPsuIdentification:
+          $ref: '#/components/schemas/hrefType'
+        updatePsuIdentification:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithProprietaryData:
+          $ref: '#/components/schemas/hrefType'
+        updateProprietaryData:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithPsuAuthentication:
+          $ref: '#/components/schemas/hrefType'
+        updatePsuAuthentication:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithEncryptedPsuAuthentication:
+          $ref: '#/components/schemas/hrefType'
+        updateEncryptedPsuAuthentication:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithAuthenticationMethodSelection:
+          $ref: '#/components/schemas/hrefType'
+        selectAuthenticationMethod:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithTransactionAuthorisation:
+          $ref: '#/components/schemas/hrefType'
+        authoriseTransaction:
+          $ref: '#/components/schemas/hrefType'
+        self:
+          $ref: '#/components/schemas/hrefType'
+        status:
+          $ref: '#/components/schemas/hrefType'
+        scaStatus:
+          $ref: '#/components/schemas/hrefType'
+        account:
+          $ref: '#/components/schemas/hrefType'
+        balances:
+          $ref: '#/components/schemas/hrefType'
+        transactions:
+          $ref: '#/components/schemas/hrefType'
+        transactionDetails:
+          $ref: '#/components/schemas/hrefType'
+        cardAccount:
+          $ref: '#/components/schemas/hrefType'
+        cardTransactions:
+          $ref: '#/components/schemas/hrefType'
+        first:
+          $ref: '#/components/schemas/hrefType'
+        next:
+          $ref: '#/components/schemas/hrefType'
+        previous:
+          $ref: '#/components/schemas/hrefType'
+        last:
+          $ref: '#/components/schemas/hrefType'
+        download:
+          $ref: '#/components/schemas/hrefType'
+      description: A _link object with all availabel link types
+    _linksStartScaProcess:
+      title: _linksStartScaProcess
+      type: object
+      properties:
+        scaRedirect:
+          $ref: '#/components/schemas/hrefType'
+        scaApp2AppIOS:
+          $ref: '#/components/schemas/hrefType'
+        scaApp2AppAndroid:
+          $ref: '#/components/schemas/hrefType'
+        scaOAuth:
+          $ref: '#/components/schemas/hrefType'
+        updatePsuIdentification:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithPsuAuthentication:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithEncryptedPsuAuthentication:
+          $ref: '#/components/schemas/hrefType'
+        selectAuthenticationMethod:
+          $ref: '#/components/schemas/hrefType'
+        authoriseTransaction:
+          $ref: '#/components/schemas/hrefType'
+        scaStatus:
+          $ref: '#/components/schemas/hrefType'
+      description: |-
+        A list of hyperlinks to be recognised by the TPP. The actual hyperlinks used in the
+        response depend on the dynamical decisions of the ASPSP when processing the request.
+
+        **Remark:** All links can be relative or full links, to be decided by the ASPSP.
+
+        Type of links admitted in this response, (further links might be added for ASPSP defined
+        extensions):
+
+        - 'scaRedirect':
+          In case of an SCA Redirect Approach, the ASPSP is transmitting the link to which to
+          redirect the PSU browser.
+        - 'scaApp2AppIOS':
+          In case of an App2App Redirect Approach, the ASPSP is transmitting the link to which to
+          redirect the PSU mobile device.
+        - 'scaApp2AppAndroid':
+          In case of an App2App Redirect Approach, the ASPSP is transmitting the link to which to
+          redirect the PSU mobile device.
+        - 'scaOAuth':
+          In case of a SCA OAuth2 Approach, the ASPSP is transmitting the URI where the configuration of the Authorisation Server can be retrieved. The configuration follows the OAuth 2.0 Authorisation Server Metadata specification.
+        - 'updatePsuIdentification':
+          The link to the authorisation or cancellation authorisation sub-resource,
+          where PSU identification data needs to be uploaded.
+        - 'startAuthorisationWithPsuAuthentication':
+          The link to the authorisation or cancellation authorisation sub-resource,
+          where PSU authentication data needs to be uploaded.
+        - 'startAuthorisationWithEncryptedPsuAuthentication':
+            Same as startAuthorisactionWithPsuAuthentication where the authentication data need to be encrypted on
+            application layer in uploading.
+        - 'selectAuthenticationMethod':
+          The link to the authorisation or cancellation authorisation sub-resource,
+          where the selected authentication method needs to be uploaded.
+          This link is contained under exactly the same conditions as the data element 'scaMethods'.
+        - 'authoriseTransaction':
+          The link to the authorisation or cancellation authorisation sub-resource,
+          where the authorisation data has to be uploaded, e.g. the TOP received by SMS.
+        - 'scaStatus':
+          The link to retrieve the scaStatus of the corresponding authorisation sub-resource.
+    OtpFormat:
+      title: OtpFormat
+      type: string
+      description: The format type of the OTP to be typed in. The admitted values
+        are "characters" or "integer".
+      example: characters
+      enum:
+        - characters
+        - integer
+    authorisations:
+      title: authorisations
+      required:
+        - authorisationIds
+      type: object
+      properties:
+        authorisationIds:
+          type: array
+          description: An array of all authorisationIds
+          items:
+            type: string
+      description: An array of all authorisationIds
+    startScaprocessResponse:
+      title: startScaprocessResponse
+      required:
+        - _links
+        - authorisationId
+        - scaStatus
+      type: object
+      properties:
+        scaStatus:
+          $ref: '#/components/schemas/scaStatus'
+        authorisationId:
+          type: string
+          description: Resource identification of the related SCA
+          example: 123auth456
+        scaMethods:
+          type: array
+          description: |-
+            This data element might be contained, if SCA is required and if the PSU has a choice between different
+            authentication methods.
+
+            Depending on the risk management of the ASPSP this choice might be offered before or after the PSU
+            has been identified with the first relevant factor, or if an access token is transported.
+
+            If this data element is contained, then there is also an hyperlink of type 'startAuthorisationWithAuthenticationMethodSelection'
+            contained in the response body.
+
+            These methods shall be presented towards the PSU for selection by the TPP.
+          items:
+            $ref: '#/components/schemas/authenticationObject'
+        chosenScaMethod:
+          $ref: '#/components/schemas/authenticationObject'
+        challengeData:
+          $ref: '#/components/schemas/challengeData'
+        _links:
+          $ref: '#/components/schemas/_linksStartScaProcess'
+        psuMessage:
+          maxLength: 512
+          type: string
+          description: Text to be displayed to the PSU
+      description: Body of the JSON response for a Start SCA authorisation request.
+    OK_200_PaymentInitiationStatus:
+      required:
+        - transactionStatus
+      type: object
+      properties:
+        transactionStatus:
+          $ref: '#/components/schemas/transactionStatus'
+        fundsAvailable:
+          type: boolean
+      description: Body of the response for a successful payment initiation status
+        request in case of an JSON based endpoint.
+    tppMessage400_PIS:
+      title: tppMessage400_PIS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          $ref: '#/components/schemas/MessageCode400_PIS'
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage401_PIS:
+      title: tppMessage401_PIS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          $ref: '#/components/schemas/MessageCode401_PIS'
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage403_PIS:
+      title: tppMessage403_PIS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          $ref: '#/components/schemas/MessageCode403_PIS'
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage404_PIS:
+      title: tppMessage404_PIS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          $ref: '#/components/schemas/MessageCode404_PIS'
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage405_PIS:
+      title: tppMessage405_PIS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          type: string
+          description: Message codes defined for payment cancelations PIS for HTTP
+            Error code 405 (METHOD NOT ALLOWED).
+          example: SERVICE_INVALID
+          default: SERVICE_INVALID
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage409_PIS:
+      title: tppMessage409_PIS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          type: string
+          description: Message codes defined for PIS for HTTP Error code 409 (CONFLICT).
+          example: STATUS_INVALID
+          default: STATUS_INVALID
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    MessageCode400_PIS:
+      title: MessageCode400_PIS
+      type: string
+      description: Message codes defined for PIS for HTTP Error code 400 (BAD_REQUEST).
+      example: FORMAT_ERROR
+      enum:
+        - FORMAT_ERROR
+        - PARAMETER_NOT_CONSISTENT
+        - PARAMETER_NOT_SUPPORTED
+        - SERVICE_INVALID
+        - RESOURCE_UNKNOWN
+        - RESOURCE_EXPIRED
+        - RESOURCE_BLOCKED
+        - TIMESTAMP_INVALID
+        - PERIOD_INVALID
+        - SCA_METHOD_UNKNOWN
+        - CONSENT_UNKNOWN
+        - PAYMENT_FAILED
+        - EXECUTION_DATE_INVALID
+    MessageCode401_PIS:
+      title: MessageCode401_PIS
+      type: string
+      description: Message codes defined for PIS for HTTP Error code 401 (UNAUTHORIZED).
+      example: CERTIFICATE_INVALID
+      enum:
+        - CERTIFICATE_INVALID
+        - CERTIFICATE_EXPIRED
+        - CERTIFICATE_BLOCKED
+        - CERTIFICATE_REVOKE
+        - CERTIFICATE_MISSING
+        - SIGNATURE_INVALID
+        - SIGNATURE_MISSING
+        - CORPORATE_ID_INVALID
+        - PSU_CREDENTIALS_INVALID
+        - CONSENT_INVALID
+        - CONSENT_EXPIRED
+        - TOKEN_UNKNOWN
+        - TOKEN_INVALID
+        - TOKEN_EXPIRED
+        - REQUIRED_KID_MISSING
+    MessageCode403_PIS:
+      title: MessageCode403_PIS
+      type: string
+      description: Message codes defined defined for PIS for PIS for HTTP Error code
+        403 (FORBIDDEN).
+      example: CONSENT_UNKNOWN
+      enum:
+        - CONSENT_UNKNOWN
+        - SERVICE_BLOCKED
+        - RESOURCE_UNKNOWN
+        - RESOURCE_EXPIRED
+        - PRODUCT_INVALID
+    MessageCode404_PIS:
+      title: MessageCode404_PIS
+      type: string
+      description: Message codes defined for PIS for HTTP Error code 404 (NOT FOUND).
+      example: RESOURCE_UNKNOWN
+      enum:
+        - RESOURCE_UNKNOWN
+        - PRODUCT_UNKNOWN
+    Error400_NG_PIS:
+      title: Error400_NG_PIS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage400_PIS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: |
+        NextGenPSD2 specific definition of reporting error information in case of a HTTP error code 400.
+    Error401_NG_PIS:
+      title: Error401_NG_PIS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage401_PIS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: |
+        NextGenPSD2 specific definition of reporting error information in case of a HTTP error code 401.
+    Error403_NG_PIS:
+      title: Error403_NG_PIS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage403_PIS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: |
+        NextGenPSD2 specific definition of reporting error information in case of a HTTP error code 403.
+    Error404_NG_PIS:
+      title: Error404_NG_PIS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage404_PIS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: |
+        NextGenPSD2 specific definition of reporting error information in case of a HTTP error code 404.
+    Error405_NG_PIS:
+      title: Error405_NG_PIS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage405_PIS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: |
+        NextGenPSD2 specific definition of reporting error information in case of a HTTP error code 405.
+    Error409_NG_PIS:
+      title: Error409_NG_PIS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage409_PIS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: NextGenPSD2 specific definition of reporting error information
+        in case of a HTTP error code 409.
+  parameters:
+    payment_service:
+      name: payment_service
+      in: path
+      required: true
+      schema:
+        type: string
+        enum:
+          - payments
+          - bulk-payments
+          - periodic-payments
+    payment_product:
+      name: payment_product
+      in: path
+      required: true
+      schema:
+        type: string
+        enum:
+          - domestic
+          - sepa-credit-transfers
+          - cross-border-credit-transfers
+          - instant-sepa-credit-transfers
+          - instant-domestic-credit-transfers-hr
+          - domestic-credit-transfers-hr
+          - hr-rtgs-payments
+          - target-2-payments
+          - pain001-credit-transfers-hr
+          - pain001-credit-transfers
+    paymentId:
+      name: paymentId
+      in: path
+      required: true
+      schema:
+        type: string
+    X-Request-ID:
+      name: X-Request-ID
+      in: header
+      description: ID of the request, unique to the call, as determined by the initiating
+        party.
+      required: true
+      schema:
+        type: string
+        format: uuid
+    Digest:
+      name: Digest
+      in: header
+      description: |-
+        The digest is a base64 encoded hash of the body.
+        Hash the body of your request (or an empty string if there is no body) using the SHA-256 algorithm.
+        Base64 encode the output and add the result to your Digest header, specifying the hashing algorithm used.
+      schema:
+        type: string
+      example: SHA-256=ZuYiOtZkVxhjWmwTO5lOpsPevUNMezvk6dfb6fVhebM=
+    Signature:
+      name: Signature
+      in: header
+      description: |-
+        A signature of the request by the TPP at the application level. This might be mandated by the ASPSP. 
+        The signature is a list of headers with their signed values. Any header can be used in the signature (including the `Digest` header), with the exception of the `client_id` header. 
+        To sign the `client_id` header, its name should be treated as `clientId`.
+        First, prepare the headers in the format of "header name: header value" with a line separator, e.g.,
+        ```
+        Digest: SHA-256=ZuYiOtZkVxhjWmwTO5lOpsPevUNMezvk6dfb6fVhebM=
+        clientId: WmwTO5lOpsPevUNMezvk6df
+        ```
+        Then, sign this string using your private key and hash it with SHA-256 using RSA.
+        Finally, base64 encode the resulting value. The `Signature` header should include the `keyId`, `algorithm="rsa-sha256"`, `headers` list, and the base64 encoded signature.
+      example: |-
+        keyId="SN=9FA1,CA=D-TRUST%20CA%202-1%202015,O=D-Trust%20GmbH,C=DE",algorithm="rsa-sha256",
+        headers="Digest clientId",
+        signature="Base64(RSA-SHA256(signing string))"
+      schema:
+        type: string
+    TPP-Signature-Certificate:
+      name: TPP-Signature-Certificate
+      in: header
+      description: |-
+        The certificate used for signing the request, in base64 encoding.
+        Must be included if a signature is present. The request must be signed with your QSEAL certificate.
+        The algorithm used for the signature must be RSA-SHA256. If this header is present, the `Signature` and `Digest` headers must also be provided.
+      schema:
+        type: string
+      example: MIIHXTCCBUWgAwIBAgIMIgFezw5y5yKRhs9TMA0GCSqGSIb3DQEBCwUAMGUxCzACORgEBMBMGBgQAjkYBBjAJBgcEAI5GAQYCMDQGBgQAjkYBBTAqMCgWImh0dHBzOi8vd3d3LmNlcnRzaWduLnJvL3JlcG9z...
+    PSU-IP-Address:
+      name: PSU-IP-Address
+      in: header
+      description: The forwarded IP Address header field consists of the corresponding
+        http request IP Address field between PSU and TPP.
+      schema:
+        type: string
+        format: ipv4
+      example: '192.168.8.78'
+    PSU-IP-Port:
+      name: PSU-IP-Port
+      in: header
+      description: The forwarded IP Port header field consists of the corresponding
+        HTTP request IP Port field between PSU and TPP, if available.
+      schema:
+        type: string
+    PSU-Accept:
+      name: PSU-Accept
+      in: header
+      description: The forwarded IP Accept header fields consist of the corresponding
+        HTTP request Accept header fields between PSU and TPP, if available.
+      schema:
+        type: string
+    PSU-Accept-Charset:
+      name: PSU-Accept-Charset
+      in: header
+      description: The forwarded IP Accept header fields consist of the corresponding
+        HTTP request Accept header fields between PSU and TPP, if available.
+      schema:
+        type: string
+    PSU-Accept-Encoding:
+      name: PSU-Accept-Encoding
+      in: header
+      description: The forwarded IP Accept header fields consist of the corresponding
+        HTTP request Accept header fields between PSU and TPP, if available.
+      schema:
+        type: string
+    PSU-Accept-Language:
+      name: PSU-Accept-Language
+      in: header
+      description: The forwarded IP Accept header fields consist of the corresponding
+        HTTP request Accept header fields between PSU and TPP, if available.
+      schema:
+        type: string
+    PSU-User-Agent:
+      name: PSU-User-Agent
+      in: header
+      description: |-
+        The forwarded Agent header field of the HTTP request between
+        PSU and TPP, if available.
+        Examples
+          * Android:  "Myappa/1.2 Dalvik/2.1.0 (Linux; U; Android 6.0.1; vivo 1610 Build/MMB29M)"
+          * iOS: "MyApp/1 iPhone5,2 iOS/10_1 CFNetwork/808.3 Darwin/16.3.0"
+      schema:
+        type: string
+    PSU-Http-Method:
+      name: PSU-Http-Method
+      in: header
+      description: |-
+        HTTP method used at the PSU ? TPP interface, if available.
+        Valid values are:
+        * GET
+        * POST
+        * PUT
+        * PATCH
+        * DELETE
+      schema:
+        type: string
+        enum:
+          - GET
+          - POST
+          - PUT
+          - PATCH
+          - DELETE
+    PSU-Device-ID:
+      name: PSU-Device-ID
+      in: header
+      description: |-
+        UUID (Universally Unique Identifier) for a device, which is used by the PSU, if available.
+        UUID identifies either a device or a device dependant application installation.
+        In case of an installation identification this ID need to be unaltered until removal from device.
+      schema:
+        type: string
+        format: uuid
+    PSU-Geo-Location:
+      name: PSU-Geo-Location
+      in: header
+      description: The forwarded Geo Location of the corresponding http request
+        between PSU and TPP if available.
+      schema:
+        pattern: GEO:-?[0-9]{1,2}\.[0-9]{6};-?[0-9]{1,3}\.[0-9]{6}
+        type: string
+    authorisationId:
+      name: authorisationId
+      in: path
+      description: Resource identification of the related SCA.
+      required: true
+      schema:
+        type: string
+    PSU-ID:
+      name: PSU-ID
+      in: header
+      description: >-
+        Client ID of the PSU in the ASPSP client
+        interface.
+        It is mandated by the Raiffeisen Bank to be required field if the PSU-Corporate-ID is not provided.
+        It might be contained even if an OAuth2 based authentication was performed in a
+        pre-step In this case the ASPSP might
+        check whether PSU-ID and token match,
+        according to ASPSP documentation.
+      schema:
+        type: string
+    PSU-ID-Type:
+      name: PSU-ID-Type
+      in: header
+      description: Type of the PSU-ID, needed in scenarios where PSUs have several
+        PSU-IDs as access possibility.
+      schema:
+        type: string
+    PSU-Corporate-ID:
+      name: PSU-Corporate-ID
+      in: header
+      description: It is mandated by the Raiffeisen Bank to be required field if the PSU-ID is not provided.
+      schema:
+        type: string
+    PSU-Corporate-ID-Type:
+      name: PSU-Corporate-ID-Type
+      in: header
+      description: Might be mandated in the ASPSP documentation. Only used in a
+        corporate context.
+      schema:
+        type: string
+    TPP-Redirect-Preferred:
+      name: TPP-Redirect-Preferred
+      in: header
+      description: If it equals "true", the TPP prefers a redirect over an embedded
+        SCA approach. If it equals "false", the TPP prefers not to be redirected
+        for SCA. The ASPSP will then choose between the Embedded or the Decoupled
+        SCA approach, depending on the choice of the SCA procedure by the TPP/PSU.
+        If the parameter is not used, the ASPSP will choose the SCA approach to
+        be applied depending on the SCA method chosen by the TPP/PSU.
+      schema:
+        type: string
+    TPP-Redirect-URI:
+      name: TPP-Redirect-URI
+      in: header
+      description: |-
+        URI of the URI of the TPP, where the transaction
+          flow shall be redirected to after a
+          Redirect. Mandated for the Redirect SCA
+          Approach, specifically when TPP-Redirect-
+          Preferred equals "true". See Section 4.10 for
+          further requirements on this header.
+          It is recommended to always use this header
+          field.
+      schema:
+        type: string
+    TPP-Nok-Redirect-URI:
+      name: TPP-Nok-Redirect-URI
+      in: header
+      description: If this URI is contained, the TPP is asking to redirect the transaction
+        flow to this address instead of the TPP-Redirect-URI in case of a negative
+        result of the redirect SCA method. This might be ignored by the ASPSP.
+      schema:
+        type: string
+    TPP-Notification-URI:
+      name: TPP-Notification-URI
+      in: header
+      description: URI for the Endpoint of the TPP-API to which the status of the
+        payment initiation should be sent. This header field may by ignored by the
+        ASPSP.
+      schema:
+        type: string
+    TPP-Notification-Content-Preferred:
+      name: TPP-Notification-Content-Preferred
+      in: header
+      description: 'SCA: A notification on every change of the scaStatus attribute
+        for all related authorisation processes is preferred by the TPP.'
+      schema:
+        type: string
+  securitySchemes:
+    clientIdHeader:
+      type: apiKey
+      name: client_id
+      in: header

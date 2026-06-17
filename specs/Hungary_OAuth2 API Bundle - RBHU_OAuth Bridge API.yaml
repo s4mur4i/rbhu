@@ -1,0 +1,190 @@
+openapi: 3.0.1
+x-kong-name: psd2-rbhu-bridge-api
+info:
+  title: RBHU Bridge API
+  version: 1.0.0
+servers:
+  - url: https://hu-bridge-sandbox.raiffeisen.hu/rbhu/prod02/psd2-rbhu-bridge-api
+tags: []
+paths:
+  /bridge/authorize:
+    get:
+      summary: Gets the redirect data
+      description: Gets the redirect data
+      operationId: authentication
+      parameters:
+        - $ref: '#/components/parameters/response_type'
+        - $ref: '#/components/parameters/scope'
+        - $ref: '#/components/parameters/redirect_uri'
+        - $ref: '#/components/parameters/stateNotRequired'
+        - $ref: '#/components/parameters/clientId'
+        - $ref: '#/components/parameters/consentId'
+      responses:
+        "302":
+          description: 302 response
+          headers:
+            Location:
+              schema:
+                type: string
+          content: {}
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+  /bridge/bridge_redirect:
+    get:
+      summary: Stores introspection token and its metadata to cache
+      description: Stores introspection token and its metadata to cache
+      operationId: redirect
+      parameters:
+        - $ref: '#/components/parameters/scope'
+        - $ref: '#/components/parameters/clientId'
+        - $ref: '#/components/parameters/rstate'
+        - $ref: '#/components/parameters/username'
+        - $ref: '#/components/parameters/confirmation'
+        - $ref: '#/components/parameters/error'
+        - $ref: '#/components/parameters/error_description'
+      responses:
+        "302":
+          description: 302 response
+          headers:
+            Location:
+              schema:
+                type: string
+          content: {}
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+components:
+  parameters:
+    username:
+      name: username
+      in: query
+      required: true
+      schema:
+        type: string
+    rstate:
+      name: rstate
+      in: query
+      required: true
+      schema:
+        type: string
+    confirmation:
+      name: confirmation
+      in: query
+      required: true
+      schema:
+        type: string
+    originalUrl:
+      name: original-url
+      in: query
+      required: true
+      schema:
+        type: string
+    stateNotRequired:
+      name: state
+      in: query
+      description: This string will be echoed back to application when user is redirected
+      schema:
+        type: string
+    error:
+      name: error
+      in: query
+      schema:
+        type: string
+    error_description:
+      name: error_description
+      in: query
+      schema:
+        type: string
+    response_type:
+      name: response_type
+      in: query
+      description: request an authorization code or or access token (implicit)
+      required: true
+      schema:
+        type: string
+        enum:
+          - code
+          - token
+    scope:
+      name: scope
+      in: query
+      description: Scope being requested
+      required: true
+      schema:
+        type: string
+        enum:
+          - AISP
+          - PISP
+          - CISP
+      example: AISP
+    redirect_uri:
+      name: redirect_uri
+      in: query
+      description: URI where user is redirected to after authorization
+      required: true
+      schema:
+        type: string
+      example: https://host.com/process-access-token
+    consentId:
+      name: consentId
+      in: query
+      required: true
+      schema:
+        type: string
+      example: fe93941a-89a0-46f7-9105-67c5053f9904
+    clientId:
+      name: client_id
+      in: query
+      required: true
+      schema:
+        type: string
+      example: fe93941a-89a0-46f7-9105-67c5053f9904
+    scaMethod:
+      name: scaMethod
+      in: query
+      description: |
+        APP_TO_APP_xxx sca redirect methods are supported only for those cases which in response of the POST /consents also returns APP_TO_APP_xxx scaMethods. If no "scaMethod" query parameter is specified, default value is "scaRedirect".
+      schema:
+        type: string
+      example: scaRedirect, APP_TO_APP_IOS, APP_TO_APP_ANDROID
+  schemas:
+    XS2A_Berlin_Error:
+      type: object
+      properties:
+        errorCode:
+          type: string
+          description: Optional error code for reporting purposes.
+        errorDescription:
+          type: string
+          description: The description of the error.

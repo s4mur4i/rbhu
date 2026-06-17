@@ -1,0 +1,1331 @@
+openapi: 3.0.1
+x-kong-name: psd2-periodic-payments-domestic-api-132
+info:
+  title: Berlin Group Periodic domestic API
+  version: 1.3.2
+externalDocs:
+  description: |
+    Full Documentation of NextGenPSD2 Access to Account Interoperability Framework
+    (General Introduction Paper, Operational Rules, Implementation Guidelines)
+  url: https://www.berlin-group.org/nextgenpsd2-downloads
+servers:
+  - url: https://hu-api-sandbox.raiffeisen.hu/rbhu/prod02/psd2-periodic-payments-api-1.3.2/v1
+security:
+- clientIdHeader: []
+tags:
+  - name: Payment Initiation Service (PIS)
+    description: |
+      The Decription for Payment Initiation Service (PIS) offers the following services:
+        * Initiation and update of a payment request
+        * Status information of a payment
+  - name: Common Services
+    description: |
+      Processes on starting authorisations, update PSU identification or
+       PSU authentication data and explicit authorisation of transactions by using
+       SCA are very similar in PIS and AIS and signing baskets services.
+       The API calls supporting these processes are described in the following independently
+       from the service/endpoint.
+       For reasons of clarity, the endpoints are defined always for the Payment Initiation Service, the Payment Cancellation, the Account Information Service (Consents), and Signing Baskets separately. These processes usually are used following a hyperlink of the ASPSP.
+paths:
+  /{paymentService}/domestic:
+    post:
+      tags:
+        - Payment Initiation Service (PIS)
+      summary: Payment initiation request
+      description: This method is used to initiate a domestic payment at the ASPSP.
+      operationId: initiateDomesticPayment
+      parameters:
+        - name: paymentService
+          in: path
+          required: true
+          schema:
+            type: string
+            enum:
+              - periodic-payments
+        - name: X-Request-ID
+          in: header
+          description: ID of the request, unique to the call, as determined by the initiating
+            party.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: PSU-IP-Address
+          in: header
+          description: The forwarded IP Address header field consists of the corresponding
+            http request IP Address field between PSU and TPP.
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/digest'
+        - $ref: '#/components/parameters/signature'
+        - $ref: '#/components/parameters/tpp-signature-certificate'
+        - name: PSU-ID
+          in: header
+          description: |-
+            Client ID of the PSU in the ASPSP client interface. Might be mandated in the ASPSP's documentation.
+            Is not contained if an OAuth2 based authentication was performed in a pre-step or an OAuth2 based SCA was performed in an preceeding
+            AIS service in the same session.
+          schema:
+            type: string
+        - name: PSU-ID-Type
+          in: header
+          description: Type of the PSU-ID, needed in scenarios where PSUs have several
+            PSU-IDs as access possibility.
+          schema:
+            type: string
+        - name: PSU-Corporate-ID
+          in: header
+          description: Might be mandated in the ASPSP's documentation. Only used in
+            a corporate context.
+          schema:
+            type: string
+        - name: PSU-Corporate-ID-Type
+          in: header
+          description: Might be mandated in the ASPSP's documentation. Only used in
+            a corporate context.
+          schema:
+            type: string
+        - name: Consent-ID
+          in: header
+          description: |-
+            This data element may be contained, if the payment initiation transaction is part of a session, i.e. combined AIS/PIS service.
+            This then contains the consentId of the related AIS consent, which was performed prior to this payment initiation.
+          schema:
+            type: string
+        - name: TPP-Redirect-Preferred
+          in: header
+          description: |-
+            If it equals "true", the TPP prefers a redirect over an embedded SCA approach.
+            If it equals "false", the TPP prefers not to be redirected for SCA. The ASPSP will then choose between the Embedded or the Decoupled
+            SCA approach, depending on the choice of the SCA procedure by the TPP/PSU.
+            If the parameter is not used, the ASPSP will choose the SCA approach to be applied depending on the SCA method chosen by the
+            TPP/PSU.
+          schema:
+            type: string
+            enum:
+              - "true"
+              - "false"
+        - name: TPP-Redirect-URI
+          in: header
+          description: |-
+            URI of the TPP, where the transaction flow shall be redirected
+            to after a Redirect.Mandated for the Redirect SCA Approach (including
+            OAuth2 SCA approach), specifically when TPP-Redirect-Preferred equals
+            "true".It is recommended to always use this header field. **Remark
+            for Future:** This field might be changed to mandatory in the next version
+            of the specification.
+          schema:
+            type: string
+        - name: TPP-Nok-Redirect-URI
+          in: header
+          description: |-
+            If this URI is contained, the TPP is asking to redirect the transaction flow to this address instead of the TPP-Redirect-URI in case
+            of a negative result of the redirect SCA method. This might be ignored by the ASPSP.
+          schema:
+            type: string
+        - name: TPP-Explicit-Authorisation-Preferred
+          in: header
+          description: |-
+            If it equals "true", the TPP prefers to start the authorisation
+            process separately, e.g. because of the usage of a signing basket. 
+            This preference might be ignored by the ASPSP, if a signing basket is not
+            supported as functionality.If it equals "false" or if the parameter
+            is not used, there is no preference of the TPP. This especially indicates
+            that the TPP assumes a direct authorisation of the transaction in the
+            next step, without using a signing basket.
+          schema:
+            type: string
+            enum:
+              - "true"
+              - "false"
+        - name: TPP-Rejection-NoFunds-Preferred
+          in: header
+          description: If it equals "true" then the TPP prefers a rejection of the payment
+            initiation in case the ASPSP is providing an integrated confirmation of
+            funds request an the result of this is that not sufficient funds are available.
+            If it equals "false" then the TPP prefers that the ASPSP is dealing with
+            the payment initiation like in the ASPSPs online channel, potentially waiting
+            for a certain time period for funds to arrive to initiate the payment.This
+            parameter might be ignored by the ASPSP.
+          schema:
+            type: string
+            enum:
+              - "true"
+              - "false"
+        - name: PSU-IP-Port
+          in: header
+          description: The forwarded IP Port header field consists of the corresponding
+            HTTP request IP Port field between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-Accept
+          in: header
+          description: The forwarded IP Accept header fields consist of the corresponding
+            HTTP request Accept header fields between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-Accept-Charset
+          in: header
+          description: The forwarded IP Accept header fields consist of the corresponding
+            HTTP request Accept header fields between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-Accept-Encoding
+          in: header
+          description: The forwarded IP Accept header fields consist of the corresponding
+            HTTP request Accept header fields between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-Accept-Language
+          in: header
+          description: The forwarded IP Accept header fields consist of the corresponding
+            HTTP request Accept header fields between PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-User-Agent
+          in: header
+          description: The forwarded Agent header field of the HTTP request between
+            PSU and TPP, if available.
+          schema:
+            type: string
+        - name: PSU-Http-Method
+          in: header
+          description: |-
+            HTTP method used at the PSU ? TPP interface, if available.
+            Valid values are:
+            * GET
+            * POST
+            * PUT
+            * PATCH
+            * DELETE
+          schema:
+            type: string
+            enum:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+        - name: PSU-Device-ID
+          in: header
+          description: |-
+            UUID (Universally Unique Identifier) for a device, which is used by the PSU, if available.
+            UUID identifies either a device or a device dependant application installation.
+            In case of an installation identification this ID need to be unaltered until removal from device.
+          schema:
+            type: string
+            format: uuid
+        - name: PSU-Geo-Location
+          in: header
+          description: The forwarded Geo Location of the corresponding http request
+            between PSU and TPP if available.
+          schema:
+            pattern: (GEO:)[0-9]{1,3}\.[-][0-9]{6}\,[-][0-9]{1,3}\.[0-9]{6}
+            type: string
+      requestBody:
+        description: JSON request body for a payment inition request message
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/paymentInitiationDomestic_json'
+            examples:
+              "Payment Request with debtor account":
+                $ref: "#/components/schemas/paymentInitiationDomestic_DedicatedAccount"
+              "Payment Request without debtor account":
+                $ref: "#/components/schemas/paymentInitiationDomestic_without_Account"
+        required: true
+      responses:
+        201:
+          description: CREATED
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            ASPSP-SCA-Approach:
+              schema:
+                type: string
+                default: EMBEDDED
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/paymentInitationRequestResponse-201'
+              example: '{"description":"Response in case of a redirect with an implicitly
+                created authorisation sub-resource","value":{"transactionStatus":"RCVD","paymentId":"1234-wertiq-983","_links":{"scaRedirect":{"href":"https://www.testbank.com/asdfasdfasdf"},"self":{"href":"/v1/payments/sepa-credit-transfers/1234-wertiq-983"},"status":{"href":"/v1/payments/1234-wertiq-983/status"},"scaStatus":{"href":"/v1/payments/1234-wertiq-983/authorisations/123auth456"}}}}'
+        400:
+          description: Bad Request
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400_NG_PIS'
+        401:
+          description: Unauthorized
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error401_NG_PIS'
+        403:
+          description: Forbidden
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403_NG_PIS'
+        404:
+          description: Not found
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error404_NG_PIS'
+        405:
+          description: Method Not Allowed
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error405_NG_PIS'
+        406:
+          description: Not Acceptable
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        408:
+          description: Request Timeout
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        409:
+          description: Conflict
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error409_NG_PIS'
+        415:
+          description: Unsuported Media Type
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        429:
+          description: Too Many Requests
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        500:
+          description: Internal Server Error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+        503:
+          description: Service Unavailable
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                default: 99391c7e-ad88-49ec-a2ad-99ddcb1f7721
+            Location:
+              schema:
+                type: string
+          content: {}
+      x-codegen-request-body-name: body
+components:
+  schemas:
+    accountReferenceDomestic:
+      title: accountReferenceDomestic
+      type: object
+      properties:
+        iban:
+          pattern: '[A-Z]{2,2}[0-9]{2,2}[a-zA-Z0-9]{1,30}'
+          type: string
+          description: IBAN of an account
+          example: FR7612345987650123456789014
+        currency:
+          $ref: '#/components/schemas/currencyCode'
+      description: IBAN, of a payment accounts
+    address:
+      title: address
+      required:
+        - country
+      type: object
+      properties:
+        street:
+          maxLength: 70
+          type: string
+        buildingNumber:
+          type: string
+        city:
+          type: string
+        postalCode:
+          type: string
+        country:
+          pattern: '[A-Z]{2}'
+          type: string
+          description: ISO 3166 ALPHA2 country code
+          example: SE
+      example:
+        street: rue blue
+        buildingnNumber: "89"
+        city: Paris
+        postalCode: "75000"
+        country: FR
+    creditorAgentName:
+      maxLength: 70
+      type: string
+      description: Creditor Agent Name
+      example: Creditor Agent Name
+    amount:
+      title: amount
+      required:
+        - amount
+        - currency
+      type: object
+      properties:
+        currency:
+          pattern: '[A-Z]{3}'
+          type: string
+          description: ISO 4217 Alpha 3 currency code
+          example: EUR
+        amount:
+          pattern: -?[0-9]{1,14}(\.[0-9]{1,3})?
+          type: string
+          description: |-
+            The amount given with fractional digits, where fractions must be compliant to the currency definition.
+            Up to 14 significant figures. Negative amounts are signed by minus.
+            The decimal separator is a dot.
+
+            **Example:**
+            Valid representations for EUR with up to two decimals are:
+
+              * 1056
+              * 5768.2
+              * -1.50
+              * 5877.78
+          example: "5877.78"
+      example:
+        currency: EUR
+        amount: "123"
+    informationStructured:
+      title: Remittance
+      type: object
+      properties:
+        reference:
+          maxLength: 35
+          type: string
+          description: The actual reference.
+          example: The actual reference
+        referenceType:
+          maxLength: 35
+          type: string
+          description: referenceType
+          example: referenceType
+        referenceIssuer:
+          maxLength: 35
+          type: string
+          description: referenceIssuer
+          example: referenceIssuer
+      description: ""
+    paymentInitiationDomestic_json:
+      title: paymentInitiationDomestic_json
+      required:
+        - creditorAccount
+        - creditorName
+        - debtorAccount
+        - frequency
+        - instructedAmount
+        - startDate
+      type: object
+      properties:
+        debtorAccount:
+          $ref: '#/components/schemas/accountReferenceDomestic'
+        ultimateDebtor:
+          type: string
+          description: Max size 70 chars
+          example: Honza Novak
+        instructedAmount:
+          $ref: '#/components/schemas/amount'
+        creditorAccount:
+          $ref: '#/components/schemas/accountReferenceDomestic'
+        creditorAgent:
+          pattern: '[A-Z]{6,6}[A-Z2-9][A-NP-Z0-9]([A-Z0-9]{3,3}){0,1}'
+          type: string
+          description: BICFI
+          example: AAAADEBBXXX
+        creditorName:
+          maxLength: 70
+          type: string
+          description: Creditor Name
+          example: Creditor Name
+        creditorAddress:
+          $ref: '#/components/schemas/address'
+        ultimateCreditor:
+          type: string
+          description: Max size 70 chars
+          example: Istvan Horvath
+        purposeCode:
+          type: string
+          description: ""
+          example: S00014
+        remittanceInformationUnstructured:
+          maxLength: 140
+          type: string
+        remittanceInformationStructured:
+          $ref: '#/components/schemas/informationStructured'
+        requestedExecutionDate:
+          type: string
+          format: date
+        startDate:
+          $ref: '#/components/schemas/startDate'
+        endDate:
+          $ref: '#/components/schemas/endDate'
+        executionRule:
+          $ref: '#/components/schemas/executionRule'
+        frequency:
+          $ref: '#/components/schemas/frequency'
+        dayOfExecution:
+          $ref: '#/components/schemas/dayOfExecution'
+      description: Body for a periodic payment initiation.
+    paymentInitationRequestResponse-201:
+      title: paymentInitationRequestResponse-201
+      required:
+        - _links
+        - paymentId
+        - transactionStatus
+      type: object
+      properties:
+        transactionStatus:
+          $ref: '#/components/schemas/transactionStatus'
+        paymentId:
+          type: string
+          description: Resource identification of the generated payment initiation
+            resource.
+          example: 1234-wertiq-983
+        transactionFees:
+          $ref: '#/components/schemas/amount'
+        transactionFeeIndicator:
+          type: boolean
+          description: |-
+            If equals 'true', the transaction will involve specific transaction cost as shown by the ASPSP in
+            their public price list or as agreed between ASPSP and PSU.
+            If equals 'false', the transaction will not involve additional specific transaction costs to the PSU.
+        scaMethods:
+          type: array
+          description: |-
+            This data element might be contained, if SCA is required and if the PSU has a choice between different
+            authentication methods.
+
+            Depending on the risk management of the ASPSP this choice might be offered before or after the PSU
+            has been identified with the first relevant factor, or if an access token is transported.
+
+            If this data element is contained, then there is also an hyperlink of type 'startAuthorisationWithAuthenticationMethodSelection'
+            contained in the response body.
+
+            These methods shall be presented towards the PSU for selection by the TPP.
+          items:
+            $ref: '#/components/schemas/authenticationObject'
+        chosenScaMethod:
+          $ref: '#/components/schemas/authenticationObject'
+        challengeData:
+          $ref: '#/components/schemas/challengeData'
+        _links:
+          $ref: '#/components/schemas/_linksPaymentInitiation'
+        psuMessage:
+          maxLength: 512
+          type: string
+          description: Text to be displayed to the PSU
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage2XX'
+        serviceLevel:
+          type: string
+          enum:
+            - SEPA
+            - URGP
+            - SDVA
+            - NEXT
+            - SPOT
+            - NURG
+        endToEndIdentification:
+          maxLength: 35
+          type: string
+        creditorAgentName:
+          $ref: '#/components/schemas/creditorAgentName'
+      description: Body of the response for a successful payment initiation request.
+    transactionStatus:
+      title: transactionStatus
+      type: string
+      description: |-
+        The transaction status is filled with codes of the ISO 20022 data
+        table:- 'ACCC': 'AcceptedSettlementCompleted' -  Settlement on the creditor's
+        account has been completed.- 'ACCP': 'AcceptedCustomerProfile' -   Preceding
+        check of technical validation was successful.   Customer profile check
+        was also successful.- 'ACSC': 'AcceptedSettlementCompleted' -   Settlement
+        on the debtor?s account has been completed.    **Usage:** this can be
+        used by the first agent to report to the debtor that the transaction has
+        been completed.     **Warning:** this status is provided for transaction
+        status reasons, not for financial information.   It can only be used after
+        bilateral agreement.- 'ACSP': 'AcceptedSettlementInProcess' -   All
+        preceding checks such as technical validation and customer profile were
+        successful and therefore the payment initiation has been accepted for execution.
+        ACTC': 'AcceptedTechnicalValidation' -   Authentication and syntactical
+        and semantical validation are successful.- 'ACWC': 'AcceptedWithChange'
+        -   Instruction is accepted but a change will be made, such as date or
+        remittance not sent.- 'ACWP': 'AcceptedWithoutPosting' -   Payment instruction
+        included in the credit transfer is accepted without being posted to the
+        creditor customer?s account.- 'RCVD': 'Received' -   Payment initiation
+        has been received by the receiving agent.- 'PDNG': 'Pending' -   Payment
+        initiation or individual transaction included in the payment initiation
+        is pending.   Further checks and status update will be performed.- 'RJCT':
+        'Rejected' -   Payment initiation or individual transaction included in
+        the payment initiation has been rejected.- 'CANC': 'Cancelled'  Payment
+        initiation has been cancelled before execution  Remark: This code is still
+        requested from ISO20022.- 'ACFC': 'AcceptedFundsChecked' -  Preceeding
+        check of technical validation and customer profile was successful and an
+        automatic funds check was positive .  Remark: This code is still requested
+        from ISO20022.- 'PATC': 'PartiallyAcceptedTechnical'  Correct The payment
+        initiation needs multiple authentications, where some but not yet all have
+        been performed. Syntactical and semantical validations are successful.
+        Remark: This code is still requested from ISO20022.
+      example: ACCC
+      enum:
+        - ACCC
+        - ACCP
+        - ACSC
+        - ACSP
+        - ACTC
+        - ACWC
+        - ACWP
+        - RCVD
+        - PDNG
+        - RJCT
+        - CANC
+        - ACFC
+        - PATC
+    authenticationObject:
+      title: authenticationObject
+      required:
+        - authenticationMethodId
+        - authenticationType
+      type: object
+      properties:
+        authenticationType:
+          $ref: '#/components/schemas/authenticationType'
+        authenticationVersion:
+          type: string
+          description: |-
+            Depending on the "authenticationType".
+            This version can be used by differentiating authentication tools used within performing OTP generation in the same authentication type.
+            This version can be referred to in the ASPSP?s documentation.
+        authenticationMethodId:
+          maxLength: 35
+          type: string
+          description: An identification provided by the ASPSP for the later identification
+            of the authentication method selection.
+          example: myAuthenticationID
+        name:
+          type: string
+          description: |-
+            This is the name of the authentication method defined by the PSU in the Online Banking frontend of the ASPSP.
+            Alternatively this could be a description provided by the ASPSP like "SMS OTP on phone +49160 xxxxx 28".
+            This name shall be used by the TPP when presenting a list of authentication methods to the PSU, if available.
+          example: SMS OTP on phone +49160 xxxxx 28
+        explanation:
+          type: string
+          description: Detailed information about the SCA method for the PSU.
+          example: Detailed information about the SCA method for the PSU.
+      description: Authentication Object
+    authenticationType:
+      title: authenticationType
+      type: string
+      description: |-
+         Type of the authentication method.More authentication types
+         might be added during implementation projects and documented in the ASPSP
+         documentation.  - 'SMS_OTP': An SCA method, where an OTP linked to the
+         transaction to be authorised is sent to the PSU through a SMS channel.
+          - 'CHIP_OTP': An SCA method, where an OTP is generated by a chip card,
+         e.g. an TOP derived from an EMV cryptogram.     To contact the card, the
+         PSU normally needs a (handheld) device.     With this device, the PSU
+         either reads the challenging data through a visual interface like flickering
+         or     the PSU types in the challenge through the device key pad.  
+           The device then derives an OTP from the challenge data and displays the
+         OTP to the PSU.  - 'PHOTO_OTP': An SCA method, where the challenge is
+         a QR code or similar encoded visual data     which can be read in by a
+         consumer device or specific mobile app.     The device resp. the specific
+         app than derives an OTP from the visual challenge data and displays  
+           the OTP to the PSU.  - 'PUSH_OTP': An OTP is pushed to a dedicated authentication
+         APP and displayed to the PSU.
+      example: SMS_OTP
+      enum:
+        - SMS_OTP
+        - CHIP_OTP
+        - PHOTO_OTP
+        - PUSH_OTP
+    OtpFormat:
+      title: OtpFormat
+      type: string
+      description: The format type of the OTP to be typed in. The admitted values
+        are "characters" or "integer".
+      example: characters
+      enum:
+        - characters
+        - integer
+    challengeData:
+      title: challengeData
+      type: object
+      properties:
+        image:
+          type: string
+          description: |-
+            PNG data (max. 512 kilobyte) to be displayed to the PSU,
+            Base64 encoding, cp. [RFC4648].
+            This attribute is used only, when PHOTO_OTP or CHIP_OTP
+            is the selected SCA method.
+        data:
+          type: string
+          description: String challenge data
+        imageLink:
+          type: string
+          description: A link where the ASPSP will provides the challenge image for
+            the TPP.
+        otpMaxLength:
+          type: integer
+          description: The maximal length for the OTP to be typed in by the PSU.
+          format: int32
+        otpFormat:
+          $ref: '#/components/schemas/OtpFormat'
+        additionalInformation:
+          type: string
+          description: |-
+            Additional explanation for the PSU to explain
+            e.g. fallback mechanism for the chosen SCA method.
+            The TPP is obliged to show this to the PSU.
+      description: |-
+        It is contained in addition to the data element 'chosenScaMethod' if challenge data is needed for SCA.
+        In rare cases this attribute is also used in the context of the 'startAuthorisationWithPsuAuthentication' link.
+    startDate:
+      type: string
+      description: The first applicable day of execution starting from this date is
+        the first payment.
+      format: date
+    endDate:
+      type: string
+      description: The last applicable day of execution. If not given, it is an infinite
+        standing order.
+      format: date
+    executionRule:
+      type: string
+      description: |
+        "following" or "preceding" supported as values.
+        This data attribute defines the behaviour when recurring payment dates falls on a weekend or bank holiday.
+        The payment is then executed either the "preceding" or "following" working day.
+        ASPSP might reject the request due to the communicated value, if rules in Online-Banking are not supporting
+        this execution rule.
+      enum:
+        - following
+        - preceding
+    dayOfExecution:
+      maxLength: 2
+      type: string
+      description: |
+        Day of execution as string.
+
+        This string consists of up two characters.
+        Leading zeroes are not allowed.
+
+        31 is ultimo of the month.
+      enum:
+        - "1"
+        - "2"
+        - "3"
+        - "4"
+        - "5"
+        - "6"
+        - "7"
+        - "8"
+        - "9"
+        - "10"
+        - "11"
+        - "12"
+        - "13"
+        - "14"
+        - "15"
+        - "16"
+        - "17"
+        - "18"
+        - "19"
+        - "20"
+        - "21"
+        - "22"
+        - "23"
+        - "24"
+        - "25"
+        - "26"
+        - "27"
+        - "28"
+        - "29"
+        - "30"
+        - "31"
+    frequency:
+      $ref: '#/components/schemas/frequencyCode'
+    frequencyCode:
+      type: string
+      description: |
+        The following codes from the "EventFrequency7Code" of ISO 20022 are supported.
+        - "Daily"
+        - "Weekly"
+        - "EveryTwoWeeks"
+        - "Monthly"
+        - "EveryTwoMonths"
+        - "Quarterly"
+        - "SemiAnnual"
+        - "Annual"
+      enum:
+        - Daily
+        - Weekly
+        - EveryTwoWeeks
+        - Monthly
+        - EveryTwoMonths
+        - Quarterly
+        - SemiAnnual
+        - Annual
+    currencyCode:
+      pattern: '[A-Z]{3}'
+      type: string
+      description: ISO 4217 Alpha 3 currency code
+      example: EUR
+    _linksAll:
+      title: _linksAll
+      type: object
+      properties:
+        scaRedirect:
+          $ref: '#/components/schemas/hrefType'
+        scaOAuth:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisation:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithPsuIdentification:
+          $ref: '#/components/schemas/hrefType'
+        updatePsuIdentification:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithProprietaryData:
+          $ref: '#/components/schemas/hrefType'
+        updateProprietaryData:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithPsuAuthentication:
+          $ref: '#/components/schemas/hrefType'
+        updatePsuAuthentication:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithEncryptedPsuAuthentication:
+          $ref: '#/components/schemas/hrefType'
+        updateEncryptedPsuAuthentication:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithAuthenticationMethodSelection:
+          $ref: '#/components/schemas/hrefType'
+        selectAuthenticationMethod:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithTransactionAuthorisation:
+          $ref: '#/components/schemas/hrefType'
+        authoriseTransaction:
+          $ref: '#/components/schemas/hrefType'
+        self:
+          $ref: '#/components/schemas/hrefType'
+        status:
+          $ref: '#/components/schemas/hrefType'
+        scaStatus:
+          $ref: '#/components/schemas/hrefType'
+        account:
+          $ref: '#/components/schemas/hrefType'
+        balances:
+          $ref: '#/components/schemas/hrefType'
+        transactions:
+          $ref: '#/components/schemas/hrefType'
+        transactionDetails:
+          $ref: '#/components/schemas/hrefType'
+        cardAccount:
+          $ref: '#/components/schemas/hrefType'
+        cardTransactions:
+          $ref: '#/components/schemas/hrefType'
+        first:
+          $ref: '#/components/schemas/hrefType'
+        next:
+          $ref: '#/components/schemas/hrefType'
+        previous:
+          $ref: '#/components/schemas/hrefType'
+        last:
+          $ref: '#/components/schemas/hrefType'
+        download:
+          $ref: '#/components/schemas/hrefType'
+      description: A _link object with all availabel link types
+    _linksPaymentInitiation:
+      title: _linksPaymentInitiation
+      type: object
+      properties:
+        scaRedirect:
+          $ref: '#/components/schemas/hrefType'
+        scaOAuth:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisation:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithPsuIdentification:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithPsuAuthentication:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithEncryptedPsuAuthentication:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithAuthenticationMethodSelection:
+          $ref: '#/components/schemas/hrefType'
+        startAuthorisationWithTransactionAuthorisation:
+          $ref: '#/components/schemas/hrefType'
+        self:
+          $ref: '#/components/schemas/hrefType'
+        status:
+          $ref: '#/components/schemas/hrefType'
+        scaStatus:
+          $ref: '#/components/schemas/hrefType'
+      description: |-
+         A list of hyperlinks to be recognised by the TPP.The actual
+         hyperlinks used in the response depend on the dynamical decisions of the
+         ASPSP whenprocessing the request.**Remark:** All links can be relative
+         or full links, to be decided by the ASPSP.Type of links admitted in
+         this response, (further links might be added for ASPSP defined extensions):
+         * 'scaRedirect':   In case of an SCA Redirect Approach, the ASPSP is transmitting
+         the link to which to redirect the PSU browser.* 'scaOAuth':   In case
+         of a SCA OAuth2 Approach, the ASPSP is transmitting the URI where the configuration
+         of the Authorisation  Server can be retrieved. The configuration follows
+         the OAuth 2.0 Authorisation Server Metadata specification.* 'startAuthorisation':
+         In case, where an explicit start of the transaction authorisation is
+         needed, but no more data needs to be updated   (no authentication method
+         to be selected, no PSU identification nor PSU authentication data to be
+         uploaded).* 'startAuthorisationWithPsuIdentification':   The link to
+         the authorisation end-point, where the authorisation sub-resource has to
+         be generated while   uploading the PSU identification data.* 'startAuthorisationWithPsuAuthentication':
+           The link to the authorisation end-point, where the authorisation sub-resource
+         has to be generated while   uploading the PSU authentication data. 
+         * 'startAuthorisationWithEncryptedPsuAuthentication':    Same as startAuthorisactionWithPsuAuthentication
+         where the authentication data need to be encrypted on     application
+         layer in uploading.* 'startAuthorisationWithAuthenticationMethodSelection':
+           The link to the authorisation end-point, where the authorisation sub-resource
+         has to be generated while   selecting the authentication method.   This
+         link is contained under exactly the same conditions as the data element
+         "scaMethods"* 'startAuthorisationWithTransactionAuthorisation':  The
+         link to the authorisation end-point, where the authorisation sub-resource
+         has to be generated while   authorising the transaction e.g. by uploading
+         an OTP received by SMS.* 'self':   The link to the payment initiation
+         resource created by this request.  This link can be used to retrieve the
+         resource data.* 'status':   The link to retrieve the transaction status
+         of the payment initiation.* 'scaStatus':   The link to retrieve the
+         scaStatus of the corresponding authorisation sub-resource.   This link
+         is only contained, if an authorisation sub-resource has been already created.
+      example:
+        scaRedirect: '{"href":"https://www.testbank.com/asdfasdfasdf"}'
+        self: '{"href":"/v1/payments/sepa-credit-transfers/1234-wertiq-983"}'
+    tppMessageCategory:
+      title: tppMessageCategory
+      type: string
+      description: Category of the TPP message category
+      example: ERROR
+      enum:
+        - ERROR
+        - WARNING
+    MessageCode400_PIS:
+      title: MessageCode400_PIS
+      type: string
+      description: Message codes defined for PIS for HTTP Error code 400 (BAD_REQUEST).
+      example: FORMAT_ERROR
+      enum:
+        - FORMAT_ERROR
+        - PARAMETER_NOT_CONSISTENT
+        - PARAMETER_NOT_SUPPORTED
+        - SERVICE_INVALID
+        - RESOURCE_UNKNOWN
+        - RESOURCE_EXPIRED
+        - RESOURCE_BLOCKED
+        - TIMESTAMP_INVALID
+        - PERIOD_INVALID
+        - SCA_METHOD_UNKNOWN
+        - CONSENT_UNKNOWN
+        - PAYMENT_FAILED
+        - EXECUTION_DATE_INVALID
+    MessageCode401_PIS:
+      title: MessageCode401_PIS
+      type: string
+      description: Message codes defined for PIS for HTTP Error code 401 (UNAUTHORIZED).
+      example: CERTIFICATE_INVALID
+      enum:
+        - CERTIFICATE_INVALID
+        - CERTIFICATE_EXPIRED
+        - CERTIFICATE_BLOCKED
+        - CERTIFICATE_REVOKE
+        - CERTIFICATE_MISSING
+        - SIGNATURE_INVALID
+        - SIGNATURE_MISSING
+        - CORPORATE_ID_INVALID
+        - PSU_CREDENTIALS_INVALID
+        - CONSENT_INVALID
+        - CONSENT_EXPIRED
+        - TOKEN_UNKNOWN
+        - TOKEN_INVALID
+        - TOKEN_EXPIRED
+        - REQUIRED_KID_MISSING
+    MessageCode403_PIS:
+      title: MessageCode403_PIS
+      type: string
+      description: Message codes defined defined for PIS for PIS for HTTP Error code
+        403 (FORBIDDEN).
+      example: CONSENT_UNKNOWN
+      enum:
+        - CONSENT_UNKNOWN
+        - SERVICE_BLOCKED
+        - RESOURCE_UNKNOWN
+        - RESOURCE_EXPIRED
+        - PRODUCT_INVALID
+    MessageCode404_PIS:
+      title: MessageCode404_PIS
+      type: string
+      description: Message codes defined for PIS for HTTP Error code 404 (NOT FOUND).
+      example: RESOURCE_UNKNOWN
+      enum:
+        - RESOURCE_UNKNOWN
+        - PRODUCT_UNKNOWN
+    tppMessage2XX:
+      title: tppMessage2XX
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          type: string
+          description: Message codes for HTTP Error codes 2XX.
+          example: WARNING
+          default: WARNING
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage400_PIS:
+      title: tppMessage400_PIS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          $ref: '#/components/schemas/MessageCode400_PIS'
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage401_PIS:
+      title: tppMessage401_PIS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          $ref: '#/components/schemas/MessageCode401_PIS'
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage403_PIS:
+      title: tppMessage403_PIS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          $ref: '#/components/schemas/MessageCode403_PIS'
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage404_PIS:
+      title: tppMessage404_PIS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          $ref: '#/components/schemas/MessageCode404_PIS'
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage405_PIS:
+      title: tppMessage405_PIS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          type: string
+          description: Message codes defined for payment cancelations PIS for HTTP
+            Error code 405 (METHOD NOT ALLOWED).
+          example: SERVICE_INVALID
+          default: SERVICE_INVALID
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    tppMessage409_PIS:
+      title: tppMessage409_PIS
+      required:
+        - category
+        - code
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/tppMessageCategory'
+        code:
+          type: string
+          description: Message codes defined for PIS for HTTP Error code 409 (CONFLICT).
+          example: STATUS_INVALID
+          default: STATUS_INVALID
+        path:
+          type: string
+        text:
+          maxLength: 512
+          type: string
+          description: Additional explaining text to the TPP.
+    Error400_NG_PIS:
+      title: Error400_NG_PIS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage400_PIS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: |
+        NextGenPSD2 specific definition of reporting error information in case of a HTTP error code 400.
+    Error401_NG_PIS:
+      title: Error401_NG_PIS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage401_PIS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: |
+        NextGenPSD2 specific definition of reporting error information in case of a HTTP error code 401.
+    Error403_NG_PIS:
+      title: Error403_NG_PIS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage403_PIS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: |
+        NextGenPSD2 specific definition of reporting error information in case of a HTTP error code 403.
+    Error404_NG_PIS:
+      title: Error404_NG_PIS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage404_PIS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: |
+        NextGenPSD2 specific definition of reporting error information in case of a HTTP error code 404.
+    Error405_NG_PIS:
+      title: Error405_NG_PIS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage405_PIS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: |
+        NextGenPSD2 specific definition of reporting error information in case of a HTTP error code 405.
+    Error409_NG_PIS:
+      title: Error409_NG_PIS
+      type: object
+      properties:
+        tppMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/tppMessage409_PIS'
+        _links:
+          $ref: '#/components/schemas/_linksAll'
+      description: NextGenPSD2 specific definition of reporting error information
+        in case of a HTTP error code 409.
+    hrefType:
+      type: object
+      properties:
+        href:
+          $ref: '#/components/schemas/hrefEntry'
+      description: Link to a resource
+    hrefEntry:
+      type: string
+      description: Link to a resource
+      example: /v1/payments/sepa-credit-transfers/1234-wertiq-983
+    paymentInitiationDomestic_DedicatedAccount:
+      description: |
+        Currently, we do not support the option of initiating requests without indicating the dedicated accounts for the following network Banks: RBHU (Raiffeisen Hungary) and RDB (Raiffeisen Digital Bank)
+    paymentInitiationDomestic_without_Account:
+      description: |
+        Currently, we do not support the option of initiating requests without indicating the dedicated accounts for the following network Banks: RBHU (Raiffeisen Hungary) and RDB (Raiffeisen Digital Bank)
+  securitySchemes:
+    clientIdHeader:
+      type: apiKey
+      name: client_id
+      in: header
+  parameters:
+    digest:
+      name: Digest
+      in: header
+      description: |-
+        The digest is a base64 encoded hash of the body.
+        Hash the body of your request (or an empty string if there is no body) using the SHA-256 algorithm.
+        Base64 encode the output and add the result to your Digest header, specifying the hashing algorithm used.
+      schema:
+        type: string
+      example: SHA-256=ZuYiOtZkVxhjWmwTO5lOpsPevUNMezvk6dfb6fVhebM=
+    signature:
+      name: Signature
+      in: header
+      description: |-
+        A signature of the request by the TPP at the application level. This might be mandated by the ASPSP. 
+        The signature is a list of headers with their signed values. Any header can be used in the signature (including the `Digest` header), with the exception of the `client_id` header. 
+        To sign the `client_id` header, its name should be treated as `clientId`.
+        First, prepare the headers in the format of "header name: header value" with a line separator, e.g.,
+        ```
+        Digest: SHA-256=ZuYiOtZkVxhjWmwTO5lOpsPevUNMezvk6dfb6fVhebM=
+        clientId: WmwTO5lOpsPevUNMezvk6df
+        ```
+        Then, sign this string using your private key and hash it with SHA-256 using RSA.
+        Finally, base64 encode the resulting value. The `Signature` header should include the `keyId`, `algorithm="rsa-sha256"`, `headers` list, and the base64 encoded signature.
+      example: |-
+        keyId="SN=9FA1,CA=D-TRUST%20CA%202-1%202015,O=D-Trust%20GmbH,C=DE",algorithm="rsa-sha256",
+        headers="Digest clientId",
+        signature="Base64(RSA-SHA256(signing string))"
+      schema:
+        type: string
+    tpp-signature-certificate:
+      name: TPP-Signature-Certificate
+      in: header
+      description: |-
+        The certificate used for signing the request, in base64 encoding.
+        Must be included if a signature is present. The request must be signed with your QSEAL certificate.
+        The algorithm used for the signature must be RSA-SHA256. If this header is present, the `Signature` and `Digest` headers must also be provided.
+      schema:
+        type: string
+      example: MIIHXTCCBUWgAwIBAgIMIgFezw5y5yKRhs9TMA0GCSqGSIb3DQEBCwUAMGUxCzACORgEBMBMGBgQAjkYBBjAJBgcEAI5GAQYCMDQGBgQAjkYBBTAqMCgWImh0dHBzOi8vd3d3LmNlcnRzaWduLnJvL3JlcG9z...

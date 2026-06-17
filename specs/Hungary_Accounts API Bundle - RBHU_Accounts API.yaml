@@ -1,0 +1,1007 @@
+openapi: 3.0.1
+x-kong-name: psd2-accounts-api-132
+info:
+  title: Accounts API Title
+  description: "API for accessing information about accounts from PLACEHOLDER.\
+    \ \nThis API is compliant with Berlin Group Standard 1.3.2. \nVersion 1.3.2.1\
+    \ changes the basepath of the API.\n"
+  version: 1.3.2.2
+servers:
+  - url: https://hu-api-sandbox.raiffeisen.hu/rbhu/prod02/psd2-accounts-api-1.3.2-rbhu/v1
+security:
+  - clientIdHeader: []
+    OAuth2:
+      - AISP
+paths:
+  /accounts:
+    get:
+      tags:
+        - getAccountList
+      description: |
+        Gets `Account` objects.
+      operationId: getAccountList
+      parameters:
+        - $ref: '#/components/parameters/x-request-id'
+        - $ref: '#/components/parameters/consent-id'
+        - $ref: '#/components/parameters/withBalance'
+        - $ref: '#/components/parameters/digest'
+        - $ref: '#/components/parameters/signature'
+        - $ref: '#/components/parameters/tpp-signature-certificate'
+        - $ref: '#/components/parameters/psu-ip-address'
+        - $ref: '#/components/parameters/psu-ip-port'
+        - $ref: '#/components/parameters/psu-accept'
+        - $ref: '#/components/parameters/psu-accept-charset'
+        - $ref: '#/components/parameters/psu-accept-encoding'
+        - $ref: '#/components/parameters/psu-accept-language'
+        - $ref: '#/components/parameters/psu-user-agent'
+        - $ref: '#/components/parameters/psu-http-method'
+        - $ref: '#/components/parameters/psu-device-id'
+        - $ref: '#/components/parameters/psu-geo-location'
+      responses:
+        200:
+          description: Successful response
+          headers:
+            X-Request-ID:
+              description: X-Request-ID
+              schema:
+                type: string
+            Content-Type:
+              description: Content type of the response
+              schema:
+                type: string
+                enum:
+                  - application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_AccountsList'
+        400:
+          description: Bad Request
+          headers:
+            X-Request-ID:
+              description: X-Request-ID
+              schema:
+                type: string
+            Content-Type:
+              description: Content type of the response
+              schema:
+                type: string
+                enum:
+                  - application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        404:
+          description: Not Found
+          headers:
+            X-Request-ID:
+              description: X-Request-ID
+              schema:
+                type: string
+            Content-Type:
+              description: Content type of the response
+              schema:
+                type: string
+                enum:
+                  - application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        408:
+          description: Request Timeout
+          headers:
+            X-Request-ID:
+              description: X-Request-ID
+              schema:
+                type: string
+            Content-Type:
+              description: Content type of the response
+              schema:
+                type: string
+                enum:
+                  - application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        500:
+          description: Internal Server Error
+          headers:
+            X-Request-ID:
+              description: X-Request-ID
+              schema:
+                type: string
+            Content-Type:
+              description: Content type of the response
+              schema:
+                type: string
+                enum:
+                  - application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+  /accounts/{accountId}:
+    get:
+      tags:
+        - getAccountDetails
+      description: |
+        Gets `Account` objects.
+      operationId: getAccountDetails
+      parameters:
+        - $ref: '#/components/parameters/x-request-id'
+        - $ref: '#/components/parameters/accountId'
+        - $ref: '#/components/parameters/consent-id'
+        - $ref: '#/components/parameters/withBalance'
+        - $ref: '#/components/parameters/digest'
+        - $ref: '#/components/parameters/signature'
+        - $ref: '#/components/parameters/tpp-signature-certificate'
+        - $ref: '#/components/parameters/psu-ip-address'
+        - $ref: '#/components/parameters/psu-ip-port'
+        - $ref: '#/components/parameters/psu-accept'
+        - $ref: '#/components/parameters/psu-accept-charset'
+        - $ref: '#/components/parameters/psu-accept-encoding'
+        - $ref: '#/components/parameters/psu-accept-language'
+        - $ref: '#/components/parameters/psu-user-agent'
+        - $ref: '#/components/parameters/psu-http-method'
+        - $ref: '#/components/parameters/psu-device-id'
+        - $ref: '#/components/parameters/psu-geo-location'
+      responses:
+        200:
+          description: Successful response
+          headers:
+            X-Request-ID:
+              description: X-Request-ID
+              schema:
+                type: string
+            Content-Type:
+              description: Content type of the response
+              schema:
+                type: string
+                enum:
+                  - application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_AccountDetail'
+        400:
+          description: Bad Request
+          headers:
+            X-Request-ID:
+              description: X-Request-ID
+              schema:
+                type: string
+            Content-Type:
+              description: Content type of the response
+              schema:
+                type: string
+                enum:
+                  - application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        404:
+          description: Not Found
+          headers:
+            X-Request-ID:
+              description: X-Request-ID
+              schema:
+                type: string
+            Content-Type:
+              description: Content type of the response
+              schema:
+                type: string
+                enum:
+                  - application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        408:
+          description: Request Timeout
+          headers:
+            X-Request-ID:
+              description: X-Request-ID
+              schema:
+                type: string
+            Content-Type:
+              description: Content type of the response
+              schema:
+                type: string
+                enum:
+                  - application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        500:
+          description: Internal Server Error
+          headers:
+            X-Request-ID:
+              description: X-Request-ID
+              schema:
+                type: string
+            Content-Type:
+              description: Content type of the response
+              schema:
+                type: string
+                enum:
+                  - application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+  /accounts/{accountId}/balances:
+    get:
+      tags:
+        - getBalances
+      description: |
+        Gets `Balance` objects.
+      operationId: getBalances
+      parameters:
+        - $ref: '#/components/parameters/x-request-id'
+        - $ref: '#/components/parameters/accountId'
+        - $ref: '#/components/parameters/consent-id'
+        - $ref: '#/components/parameters/digest'
+        - $ref: '#/components/parameters/signature'
+        - $ref: '#/components/parameters/tpp-signature-certificate'
+        - $ref: '#/components/parameters/psu-ip-address'
+        - $ref: '#/components/parameters/psu-ip-port'
+        - $ref: '#/components/parameters/psu-accept'
+        - $ref: '#/components/parameters/psu-accept-charset'
+        - $ref: '#/components/parameters/psu-accept-encoding'
+        - $ref: '#/components/parameters/psu-accept-language'
+        - $ref: '#/components/parameters/psu-user-agent'
+        - $ref: '#/components/parameters/psu-http-method'
+        - $ref: '#/components/parameters/psu-device-id'
+        - $ref: '#/components/parameters/psu-geo-location'
+      responses:
+        200:
+          description: Successful response
+          headers:
+            X-Request-ID:
+              description: X-Request-ID
+              schema:
+                type: string
+            Content-Type:
+              description: Content type of the response
+              schema:
+                type: string
+                enum:
+                  - application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_BalanceResponse'
+        400:
+          description: Bad Request
+          headers:
+            X-Request-ID:
+              description: X-Request-ID
+              schema:
+                type: string
+            Content-Type:
+              description: Content type of the response
+              schema:
+                type: string
+                enum:
+                  - application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        404:
+          description: Not Found
+          headers:
+            X-Request-ID:
+              description: X-Request-ID
+              schema:
+                type: string
+            Content-Type:
+              description: Content type of the response
+              schema:
+                type: string
+                enum:
+                  - application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        408:
+          description: Request Timeout
+          headers:
+            X-Request-ID:
+              description: X-Request-ID
+              schema:
+                type: string
+            Content-Type:
+              description: Content type of the response
+              schema:
+                type: string
+                enum:
+                  - application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        500:
+          description: Internal Server Error
+          headers:
+            X-Request-ID:
+              description: X-Request-ID
+              schema:
+                type: string
+            Content-Type:
+              description: Content type of the response
+              schema:
+                type: string
+                enum:
+                  - application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+  /accounts/{accountId}/transactions:
+    get:
+      tags:
+        - getTransactionList
+      description: |
+        Gets `Transaction` objects. By default if no dateFrom and dateTo are sent, it will retrieve the transaction history for the last 90 days.
+      operationId: getTransactionList
+      parameters:
+        - $ref: '#/components/parameters/x-request-id'
+        - $ref: '#/components/parameters/accountId'
+        - $ref: '#/components/parameters/bookingStatus'
+        - $ref: '#/components/parameters/consent-id'
+        - $ref: '#/components/parameters/dateFrom'
+        - $ref: '#/components/parameters/dateTo'
+        - $ref: '#/components/parameters/entryReferenceFrom'
+        - $ref: '#/components/parameters/deltaList'
+        - $ref: '#/components/parameters/withBalance'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/digest'
+        - $ref: '#/components/parameters/signature'
+        - $ref: '#/components/parameters/tpp-signature-certificate'
+        - $ref: '#/components/parameters/psu-ip-address'
+        - $ref: '#/components/parameters/psu-ip-port'
+        - $ref: '#/components/parameters/psu-accept'
+        - $ref: '#/components/parameters/psu-accept-charset'
+        - $ref: '#/components/parameters/psu-accept-encoding'
+        - $ref: '#/components/parameters/psu-accept-language'
+        - $ref: '#/components/parameters/psu-user-agent'
+        - $ref: '#/components/parameters/psu-http-method'
+        - $ref: '#/components/parameters/psu-device-id'
+        - $ref: '#/components/parameters/psu-geo-location'
+      responses:
+        200:
+          description: Successful response
+          headers:
+            X-Request-ID:
+              description: X-Request-ID
+              schema:
+                type: string
+            Content-Type:
+              description: Content type of the response
+              schema:
+                type: string
+                enum:
+                  - application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_TransactionsListResponse'
+        400:
+          description: Bad Request
+          headers:
+            X-Request-ID:
+              description: X-Request-ID
+              schema:
+                type: string
+            Content-Type:
+              description: Content type of the response
+              schema:
+                type: string
+                enum:
+                  - application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        404:
+          description: Not Found
+          headers:
+            X-Request-ID:
+              description: X-Request-ID
+              schema:
+                type: string
+            Content-Type:
+              description: Content type of the response
+              schema:
+                type: string
+                enum:
+                  - application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        408:
+          description: Request Timeout
+          headers:
+            X-Request-ID:
+              description: X-Request-ID
+              schema:
+                type: string
+            Content-Type:
+              description: Content type of the response
+              schema:
+                type: string
+                enum:
+                  - application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+        500:
+          description: Internal Server Error
+          headers:
+            X-Request-ID:
+              description: X-Request-ID
+              schema:
+                type: string
+            Content-Type:
+              description: Content type of the response
+              schema:
+                type: string
+                enum:
+                  - application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XS2A_Berlin_Error'
+components:
+  schemas:
+    hrefType:
+      description: Link to a resource
+      type: object
+      properties:
+        href:
+          $ref: "#/components/schemas/hrefEntry"
+    hrefEntry:
+      description: Link to a resource
+      type: string
+    XS2A_Berlin_Error:
+      type: object
+      properties:
+        errorCode:
+          type: string
+          description: Optional error code for reporting purposes.
+        errorDescription:
+          type: string
+          description: The description of the error.
+    XS2A_Berlin_AccountDetail:
+      type: object
+      properties:
+        account:
+          $ref: '#/components/schemas/XS2A_Berlin_Account'
+    XS2A_Berlin_Account:
+      required:
+        - currency
+        - resourceId
+      type: object
+      properties:
+        resourceId:
+          maxLength: 35
+          type: string
+          description: Id of te account
+          example: EX09999999
+        iban:
+          pattern: '[A-Z]{2}[0-9]{2}[A-Z0-9]{12,30}'
+          type: string
+          description: Iban of the account
+          example: AT611904300234573201
+        currency:
+          pattern: ^[A-Z]{3,3}$
+          type: string
+          description: Account Currency
+          example: EUR
+        name:
+          maxLength: 35
+          type: string
+          description: Account name.
+          example: Main Account
+        product:
+          maxLength: 35
+          type: string
+          description: Product Name of the Bank for this account, proprietary definition.
+          example: Main Product
+        cashAccountType:
+          type: string
+          description: CreditAccount relates to a Credit Account type. Account Type.
+            CurrentAccount relates to a Current Account.
+          enum:
+            - CACC
+            - SVGS
+        bic:
+          maxLength: 11
+          type: string
+          description: The BIC associated to the account.
+          example: DABAIE2D
+        balances:
+          type: array
+          description: Optional. Fetched list of balances only if the withBalance
+            is requested in the query parameters and the consent has been granted.
+          items:
+            $ref: '#/components/schemas/XS2A_Berlin_Balance'
+        _links:
+          type: object
+          properties:
+            balances:
+              $ref: "#/components/schemas/hrefType"
+            transactions:
+              $ref: "#/components/schemas/hrefType"
+          description: Relative Links to the balances and to the Transactions
+        ownerName:
+          $ref: '#/components/schemas/ownerName'
+    XS2A_Berlin_BalanceResponse:
+      type: object
+      properties:
+        account:
+          type: object
+          properties:
+            iban:
+              pattern: '[A-Z]{2}[0-9]{2}[A-Z0-9]{12,30}'
+              type: string
+              description: Account IBAN.
+              example: AT611904300234573201
+        balances:
+          type: array
+          description: Optional. Fetched list of balances only if the withBalance
+            is requested in the query parameters and the consent has been granted.
+          items:
+            $ref: '#/components/schemas/XS2A_Berlin_Balance'
+      description: Response for the new balances
+    XS2A_Berlin_Balance:
+      type: object
+      properties:
+        balanceType:
+          type: string
+          enum:
+            - expected
+            - interimAvailable
+        balanceAmount:
+          $ref: '#/components/schemas/XS2A_Berlin_Amount'
+        referenceDate:
+          type: string
+          description: Date for the Balance Type
+          format: YYYY-MM-DD
+          example: 2017-10-25
+        creditLimitIncluded:
+          description: |
+            A flag indicating if the credit limit of the corresponding account is included in the calculation of the balance, where applicable.
+          type: boolean
+    XS2A_Berlin_Amount:
+      required:
+        - amount
+        - currency
+      type: object
+      properties:
+        amount:
+          type: string
+          description: Amount for the Balance Type
+        currency:
+          pattern: ^[A-Z]{3,3}$
+          type: string
+          description: Balance Currency
+          example: EUR
+      description: Amount of the transaction in the Account's currency.
+    XS2A_Berlin_AccountsList:
+      required:
+        - accounts
+      type: object
+      properties:
+        accounts:
+          type: array
+          description: List of eligible accounts
+          items:
+            $ref: '#/components/schemas/XS2A_Berlin_Account'
+      description: List of accounts
+    XS2A_Berlin_Transaction:
+      required:
+        - transactionAmount
+      type: object
+      properties:
+        transactionId:
+          type: string
+          description: Unique Identifier of the transaction.
+          example: "123000000"
+        endToEndId:
+          maxLength: 35
+          type: string
+          description: Unique reference from the initiating party to beneficiary party.
+        mandateId:
+          maxLength: 35
+          type: string
+          description: Identification of Mandates, e.g. a SEPA Mandate ID.
+        bookingDate:
+          type: string
+          description: Date the transaction was created.
+          format: date
+          example: 2018-01-01
+        valueDate:
+          type: string
+          description: Date the transaction was created.
+          format: date
+          example: 2018-01-02
+        transactionAmount:
+          $ref: '#/components/schemas/XS2A_Berlin_Amount'
+        exchangeRate:
+          type: array
+          items:
+            $ref: '#/components/schemas/XS2A_Berlin_ExchangeRate'
+        creditorName:
+          maxLength: 70
+          type: string
+          description: Name of the creditor if a Debited transaction
+        creditorAccount:
+          $ref: '#/components/schemas/XS2A_Berlin_AccountIdentification'
+        ultimateCreditor:
+          type: string
+        debtorName:
+          type: string
+          description: Name of the debtor if a Credited transaction
+        debtorAccount:
+          $ref: '#/components/schemas/XS2A_Berlin_AccountIdentification'
+        ultimateDebtor:
+          type: string
+        remittanceInformationUnstructured:
+          maxLength: 140
+          type: string
+          description: The description of the transaction.
+        remittanceInformationStructured:
+          maxLength: 140
+          type: string
+          description: Other information.
+        purposeCode:
+          type: string
+        bankTransactionCode:
+          type: string
+    XS2A_Berlin_ExchangeRate:
+      required:
+        - exchangeRate
+        - quotationDate
+        - sourceCurrency
+        - targetCurrency
+        - unitCurrency
+      type: object
+      properties:
+        sourceCurrency:
+          $ref: '#/components/schemas/XS2A_Berlin_CurrencyCode'
+        unitCurrency:
+          type: string
+        exchangeRate:
+          type: string
+          example: "0.241"
+        targetCurrency:
+          $ref: '#/components/schemas/XS2A_Berlin_CurrencyCode'
+        quotationDate:
+          type: string
+          format: date
+        contractIdentification:
+          type: string
+      description: Exchange rate
+    XS2A_Berlin_TransactionsListResponse:
+      type: object
+      properties:
+        transactions:
+          $ref: '#/components/schemas/XS2A_Berlin_TransactionsListAll'
+      description: List of Transactions and associated links
+    XS2A_Berlin_Link:
+      type: object
+      properties:
+        viewAccount:
+          $ref: "#/components/schemas/hrefType"
+        firstPage:
+          $ref: "#/components/schemas/hrefType"
+        secondPage:
+          $ref: "#/components/schemas/hrefType"
+        currentPage:
+          $ref: "#/components/schemas/hrefType"
+        nextPage:
+          $ref: "#/components/schemas/hrefType"
+        lastPage:
+          $ref: "#/components/schemas/hrefType"
+      description: link to be added
+    XS2A_Berlin_TransactionsListAll:
+      type: object
+      properties:
+        booked:
+          $ref: '#/components/schemas/XS2A_Berlin_TransactionList'
+        pending:
+          $ref: '#/components/schemas/XS2A_Berlin_TransactionList'
+        _links:
+          $ref: '#/components/schemas/XS2A_Berlin_Link'
+      description: List of transactions
+    XS2A_Berlin_TransactionList:
+      type: array
+      description: List of transactions
+      items:
+        $ref: '#/components/schemas/XS2A_Berlin_Transaction'
+    XS2A_Berlin_AccountIdentification:
+      type: object
+      properties:
+        accountNumber:
+          type: string
+          description: Account number.
+          example: 99999/9999
+        iban:
+          pattern: '[A-Z]{2}[0-9]{2}[A-Z0-9]{12,30}'
+          type: string
+          description: Account IBAN.
+          example: AT611904300234573201
+      description: Identifies an account through a number or an IBAN.
+    XS2A_Berlin_CurrencyCode:
+      type: object
+      properties:
+        CurrencyCode:
+          pattern: '[A-Z]{3}'
+          type: string
+          example: EUR
+      description: ISO 4217 Alpha 3 currency code
+    ownerName:
+      maxLength: 140
+      type: string
+      description: |
+        Name of the legal account owner.
+        If there is more than one owner, then e.g. two names might be noted here.
+
+        For a corporate account, the corporate name is used for this attribute.
+        Even if supported by the ASPSP, the provision of this field might depend on the fact whether an explicit consent to this specific additional account information has been given by the PSU.
+      example: John Doe
+  parameters:
+    x-request-id:
+      name: X-Request-ID
+      schema:
+        type: string
+        format: uuid
+      required: true
+      in: header
+      description: ID of the request, unique to the call, as determined by the initiating
+        party.
+    accountId:
+      name: accountId
+      in: path
+      description: "This identification is denoting the addressed account. \nThe\
+        \ accountId is retrieved by using a \"Read Account List\" call. \nThe accountId\
+        \ is the \"id\" attribute of the account structure. \nIts value is constant\
+        \ at least throughout the lifecycle of a given consent."
+      required: true
+      schema:
+        type: string
+    bookingStatus:
+      name: bookingStatus
+      in: query
+      description: "Permitted codes are \n  * \"booked\",\n  * \"pending\" and \n\
+        \  * \"both\"\n\"booked\" shall be supported by the ASPSP.\nTo support the\
+        \ \"pending\" and \"both\" feature is optional for the ASPSP, \nError code\
+        \ if not supported in the online banking frontend"
+      required: true
+      schema:
+        type: string
+        enum:
+          - booked
+          - pending
+          - both
+    consent-id:
+      name: Consent-ID
+      in: header
+      description: This then contains the consentId of the related AIS consent,
+        which was performed prior to this payment initiation.
+      required: true
+      schema:
+        type: string
+    dateFrom:
+      name: dateFrom
+      in: query
+      description: "Conditional: Starting date (inclusive the date dateFrom) of\
+        \ the transaction list, mandated if no delta access is required.\n\nFor\
+        \ booked transactions, the relevant date is the booking date. \n\nFor pending\
+        \ transactions, the relevant date is the entry date, which may not be transparent\
+        \ \nneither in this API nor other channels of the ASPSP."
+      schema:
+        type: string
+        format: date
+    dateTo:
+      name: dateTo
+      in: query
+      description: "End date (inclusive the data dateTo) of the transaction list,\
+        \ default is \"now\" if not given. \n\nMight be ignored if a delta function\
+        \ is used.\n\nFor booked transactions, the relevant date is the booking\
+        \ date. \n\nFor pending transactions, the relevant date is the entry date,\
+        \ which may not be transparent \nneither in this API nor other channels\
+        \ of the ASPSP."
+      schema:
+        type: string
+        format: date
+    entryReferenceFrom:
+      name: entryReferenceFrom
+      in: query
+      description: "This data attribute is indicating that the AISP is in favour\
+        \ to get all transactions after \nthe transaction with identification entryReferenceFrom\
+        \ alternatively to the above defined period. \nThis is a implementation\
+        \ of a delta access. \nIf this data element is contained, the entries \"\
+        dateFrom\" and \"dateTo\" might be ignored by the ASPSP \nif a delta report\
+        \ is supported.\n\nOptional if supported by API provider."
+      schema:
+        type: string
+    deltaList:
+      name: deltaList
+      in: query
+      description: |-
+        This data attribute is indicating that the AISP is in favour to get all transactions after the last report access for this PSU on the addressed account. This is another implementation of a delta access-report.
+        This delta indicator might be rejected by the ASPSP if this function is not supported.
+        Optional if supported by API provider
+      schema:
+        type: boolean
+    withBalance:
+      name: withBalance
+      in: query
+      description: "If contained, this function reads the list of accessible payment\
+        \ accounts including the booking balance, \nif granted by the PSU in the\
+        \ related consent and available by the ASPSP. \nThis parameter might be\
+        \ ignored by the ASPSP."
+      schema:
+        type: string
+    page:
+      name: page
+      in: query
+      description: Current page of the list of transactions.
+      schema:
+        type: string
+    digest:
+      name: Digest
+      in: header
+      description: |-
+        The digest is a base64 encoded hash of the body.
+        Hash the body of your request (or an empty string if there is no body) using the SHA-256 algorithm.
+        Base64 encode the output and add the result to your Digest header, specifying the hashing algorithm used.
+      schema:
+        type: string
+      example: SHA-256=ZuYiOtZkVxhjWmwTO5lOpsPevUNMezvk6dfb6fVhebM=
+    signature:
+      name: Signature
+      in: header
+      description: |-
+        A signature of the request by the TPP at the application level. This might be mandated by the ASPSP. 
+        The signature is a list of headers with their signed values. Any header can be used in the signature (including the `Digest` header), with the exception of the `client_id` header. 
+        To sign the `client_id` header, its name should be treated as `clientId`.
+        First, prepare the headers in the format of "header name: header value" with a line separator, e.g.,
+        ```
+        Digest: SHA-256=ZuYiOtZkVxhjWmwTO5lOpsPevUNMezvk6dfb6fVhebM=
+        clientId: WmwTO5lOpsPevUNMezvk6df
+        ```
+        Then, sign this string using your private key and hash it with SHA-256 using RSA.
+        Finally, base64 encode the resulting value. The `Signature` header should include the `keyId`, `algorithm="rsa-sha256"`, `headers` list, and the base64 encoded signature.
+      example: |-
+        keyId="SN=9FA1,CA=D-TRUST%20CA%202-1%202015,O=D-Trust%20GmbH,C=DE",algorithm="rsa-sha256",
+        headers="Digest clientId",
+        signature="Base64(RSA-SHA256(signing string))"
+      schema:
+        type: string
+    tpp-signature-certificate:
+      name: TPP-Signature-Certificate
+      in: header
+      description: |-
+        The certificate used for signing the request, in base64 encoding.
+        Must be included if a signature is present. The request must be signed with your QSEAL certificate.
+        The algorithm used for the signature must be RSA-SHA256. If this header is present, the `Signature` and `Digest` headers must also be provided.
+      schema:
+        type: string
+      example: MIIHXTCCBUWgAwIBAgIMIgFezw5y5yKRhs9TMA0GCSqGSIb3DQEBCwUAMGUxCzACORgEBMBMGBgQAjkYBBjAJBgcEAI5GAQYCMDQGBgQAjkYBBTAqMCgWImh0dHBzOi8vd3d3LmNlcnRzaWduLnJvL3JlcG9z...
+    psu-ip-address:
+      name: PSU-IP-Address
+      in: header
+      description: "The forwarded IP Address header field consists of the corresponding\
+        \ HTTP request \nIP Address field between PSU and TPP. \nIt shall be contained\
+        \ if and only if this request was actively initiated by the PSU."
+      schema:
+        type: string
+    psu-ip-port:
+      name: PSU-IP-Port
+      in: header
+      description: The forwarded IP Port header field consists of the corresponding
+        HTTP request IP Port field between PSU and TPP, if available.
+      schema:
+        type: string
+    psu-accept:
+      name: PSU-Accept
+      in: header
+      description: The forwarded IP Accept header fields consist of the corresponding
+        HTTP request Accept header fields between PSU and TPP, if available.
+      schema:
+        type: string
+    psu-accept-charset:
+      name: PSU-Accept-Charset
+      in: header
+      description: The forwarded IP Accept header fields consist of the corresponding
+        HTTP request Accept header fields between PSU and TPP, if available.
+      schema:
+        type: string
+    psu-accept-encoding:
+      name: PSU-Accept-Encoding
+      in: header
+      description: The forwarded IP Accept header fields consist of the corresponding
+        HTTP request Accept header fields between PSU and TPP, if available.
+      schema:
+        type: string
+    psu-accept-language:
+      name: PSU-Accept-Language
+      in: header
+      description: The forwarded IP Accept header fields consist of the corresponding
+        HTTP request Accept header fields between PSU and TPP, if available.
+      schema:
+        type: string
+    psu-user-agent:
+      name: PSU-User-Agent
+      in: header
+      description: |-
+        The forwarded Agent header field of the HTTP request between
+        PSU and TPP, if available.
+        Examples
+          * Android:  "Myappa/1.2 Dalvik/2.1.0 (Linux; U; Android 6.0.1; vivo 1610 Build/MMB29M)"
+          * iOS: "MyApp/1 iPhone5,2 iOS/10_1 CFNetwork/808.3 Darwin/16.3.0"
+      schema:
+        type: string
+    psu-http-method:
+      name: PSU-Http-Method
+      in: header
+      description: |-
+        HTTP method used at the PSU ? TPP interface, if available.
+        Valid values are:
+        * GET
+        * POST
+        * PUT
+        * PATCH
+        * DELETE
+      schema:
+        type: string
+        enum:
+          - GET
+          - POST
+          - PUT
+          - PATCH
+          - DELETE
+    psu-device-id:
+      name: PSU-Device-ID
+      in: header
+      description: |-
+        UUID (Universally Unique Identifier) for a device, which is used by the PSU, if available.
+        UUID identifies either a device or a device dependant application installation.
+        In case of an installation identification this ID need to be unaltered until removal from device.
+      schema:
+        type: string
+        format: uuid
+    psu-geo-location:
+      name: PSU-Geo-Location
+      in: header
+      description: The forwarded Geo Location of the corresponding http request
+        between PSU and TPP if available.
+      schema:
+        pattern: (GEO:)[0-9]{1,3}\.[-][0-9]{6}\,[-][0-9]{1,3}\.[0-9]{6}
+        type: string
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      description: ""
+      flows:
+        authorizationCode:
+          authorizationUrl: https://api-sandbox.raiffeisen.hu/psd2-rbhu-oauth2-api/oauth2/authorize
+          tokenUrl: https://api-sandbox.raiffeisen.hu/psd2-rbhu-oauth2-api/oauth2/token
+          scopes:
+            AISP: Account access
+    clientIdHeader:
+      type: apiKey
+      name: client_id
+      in: header
